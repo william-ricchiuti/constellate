@@ -7,6 +7,14 @@ version's `parser.js`. Node and link *order* is ignored; everything else must ma
 parity/run.sh <obsidian-live-wallpaper checkout> [vault [ignore-path...]]
 ```
 
+Run it against the web version at **v1.2.0** (commit `b18445d`):
+`git -C ../obsidian-live-wallpaper checkout b18445d`. v1.3.0 added `graphSource` and changed
+`idleFps`, so the config cases don't match a newer checkout.
+
+Parity covers Obsidian vaults only. `vw-dump` reads a folder as `obsidian` unless you pass
+`--kind` (`notes`, `logseq`, `dendron`, `folder`), so `run.sh` checks exactly the reader the
+web version has. The other kinds have their own unit tests in `crates/core`.
+
 - Always checks a generated edge-case vault (`make-fixture.js`): duplicate names,
   case-insensitive and path links, aliases, headings, embeds and attachments, every tag
   syntax, CRLF, BOM, Unicode names and spaces, hidden and ignored folders, symlinks.

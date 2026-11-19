@@ -1,7 +1,9 @@
 # Vault Wallpaper
 
-Your Obsidian vault's graph as your Mac's desktop wallpaper. Every note is a point, every
-link a line, and the picture updates as you write. It's a small native app that lives in
+Your notes, or any folder, as your Mac's desktop wallpaper. Point it at an Obsidian vault (or
+a Logseq, Dendron, Foam, Zettlr or org-roam folder, or plain Markdown with links): every note
+is a point, every link a line, and the picture updates as you write. Point it at any other
+folder and every file is a dot linked to its folder. It's a small native app that lives in
 the menu bar: no browser, no Node, no local server, no wallpaper host app.
 
 ![The four launch looks: Default, Night Sky, Aurora Lite and Ink & Paper](docs/phase6/all-themes.png)
@@ -32,24 +34,44 @@ Updates come from the app itself (Check for Updates…), so `brew upgrade` leave
 
 ## First run
 
-The first time it opens, Vault Wallpaper asks you to choose your Obsidian vault (the folder
-that holds your notes). It reads the vault, lays out the graph and draws it behind your
+The first time it opens, Vault Wallpaper asks you to choose a folder: your notes folder (an
+Obsidian vault, for example) or any other folder. Until you choose one, the wallpaper shows a
+built-in sample graph. It reads the folder, lays out the graph and draws it behind your
 desktop icons, on every Space and every display. The layout is cached, so later launches
 don't have to lay it out again.
 
 New installs start still: the picture only changes when your notes do. Motion (glow that
 breathes, edit effects) is opt-in in Settings.
 
-If the vault folder isn't there (an unplugged drive, a folder that was moved), the menu's top
+If the folder isn't there (an unplugged drive, a folder that was moved), the menu's top
 line says **Vault not found** and the app looks for it again when a drive is mounted and every
 minute until it's back.
 
-**iCloud Drive vaults:** with *Optimize Mac Storage* on, macOS may move notes you haven't opened
-in a while to iCloud, leaving `.Note.md.icloud` placeholders. Vault Wallpaper doesn't download
-files, so those notes aren't shown until they're downloaded again. To keep the whole vault on
-your Mac, right-click the vault folder in Finder and choose **Keep Downloaded** (macOS 15 and
-later), or turn off *Optimize Mac Storage* in System Settings → Apple Account → iCloud →
-iCloud Drive.
+## What it reads
+
+The app looks at the folder you choose and picks how to read it:
+
+| Folder | How it's read |
+|---|---|
+| **Obsidian vault** (has `.obsidian/`, here or in a parent folder) | Notes and `[[wikilinks]]`, tags and folders, exactly as before. |
+| **Logseq** (`logseq/config.edn`) | Pages and journals, `[[page]]` and `#tag` links, aliases, namespaces. |
+| **Dendron** (`dendron.yml`) | Notes and wikilinks; `a.b.c` hangs under `a.b` and `a`. |
+| **Foam, Zettlr, org-roam, plain Markdown with links** | `.md`, `.markdown` and `.org` notes; wikilinks, `[text](note.md)` links, reference links, org `file:` and `id:` links. |
+| **Any other folder** | Every file is a dot linked to its folder, coloured by file type. Files are never opened, only listed. |
+
+Settings → Folder shows what was detected and why, and **Read as** overrides it. In
+any-folder mode, nodes can also be sized by file size instead of link count.
+
+Big folders are fine: outside Obsidian vaults the graph holds at most 35,000 files (the menu
+says so when a folder has more), and folders like `node_modules`, `build`, `dist`, `target`,
+`Pods`, caches and `~/Library` are skipped.
+
+**iCloud Drive:** with *Optimize Mac Storage* on, macOS may move files you haven't opened in a
+while to iCloud, leaving placeholders. For other notes apps and any folder, placeholders are
+skipped and never downloaded. In an Obsidian vault, notes left as `.Note.md.icloud`
+placeholders aren't shown until they're downloaded again. To keep the whole folder on your
+Mac, right-click it in Finder and choose **Keep Downloaded** (macOS 15 and later), or turn off
+*Optimize Mac Storage* in System Settings → Apple Account → iCloud → iCloud Drive.
 
 Used the web version (obsidian-live-wallpaper)? Choose **Import Web Version Settings…** in the
 menu to bring your old `config.json` and custom presets over. See
@@ -61,7 +83,7 @@ menu to bring your old `config.json` and custom presets over. See
 |---|---|
 | Pause Wallpaper | Freezes the picture (no animation) until you untick it. |
 | Settings… | Themes, presets, colours, labels, layout and motion. Changes apply as you make them. |
-| Choose Vault… | Switch to another vault. |
+| Choose Folder… | Switch to another notes folder or any folder. |
 | Import Web Version Settings… | Read a `config.json` from the web version. |
 | Export PNG | Saves the current picture to `~/Pictures/Vault Wallpaper/` and shows it in Finder. With several displays, it saves the first display's picture. |
 | Open Config File | Opens `config.json` in your text editor; edits apply when you save. |
@@ -94,16 +116,18 @@ still applies) and logged.
 Notable settings: accent and background colours, tag colours, which folders to ignore
 (`ignorePaths`), whether to show links to notes that don't exist yet
 (`showUnresolvedLinks`), label size and source, layout (force, rings, timeline, galaxy),
-and motion.
+motion, how the folder is read (`sourceKind`: `auto`, `obsidian`, `notes`, `logseq`,
+`dendron` or `folder`) and node size (`nodeSize`: `links` or `fileSize`).
 
 ## Privacy
 
-Everything stays on your Mac. Vault Wallpaper reads your vault's Markdown files to find notes,
-links and tags, and never changes them. No analytics, no crash reports, no account.
+Everything stays on your Mac. Vault Wallpaper reads the notes in the folder you choose to find
+links and tags (in any-folder mode it only looks at file names, sizes and dates), and never
+changes anything. No analytics, no crash reports, no account.
 
 The one network request: the DMG and Homebrew versions check for updates once a day, with
 [Sparkle](https://sparkle-project.org). That is one small HTTPS request for a short
-`appcast.xml` file on GitHub, which sends nothing about you or your vault beyond what any web
+`appcast.xml` file on GitHub, which sends nothing about you or your notes beyond what any web
 request carries (your IP address and the app's version in the user agent). Nothing else runs
 in between. An update is downloaded only when there is one, and installed only after its
 signature checks out. Turn the daily check off in the update window ("Automatically check
