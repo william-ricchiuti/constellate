@@ -44,7 +44,7 @@ New installs start still: the picture only changes when your notes do. Motion (g
 breathes, edit effects) is opt-in in Settings.
 
 If the folder isn't there (an unplugged drive, a folder that was moved), the menu's top
-line says **Vault not found** and the app looks for it again when a drive is mounted and every
+line says **Folder not found** and the app looks for it again when a drive is mounted and every
 minute until it's back.
 
 ## What it reads
