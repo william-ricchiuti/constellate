@@ -19,7 +19,7 @@ Custom presets saved in its settings page are in `custom-presets.json` in the sa
 ## 2. Import it
 
 1. Install and open Vault Wallpaper (see the [README](../README.md#install)). If it asks for a
-   vault on first run, you can cancel; the import sets it.
+   folder on first run, you can cancel; the import sets it.
 2. In the menu bar, click the graph icon and choose **Import Web Version Settings…**.
 3. Pick the old config file. If you already have settings, the app asks before replacing
    them.
@@ -32,7 +32,7 @@ What happens:
   renderer any more. Any value that is invalid is skipped too; the rest still imports. The
   confirmation lists what was skipped.
 - If the old file has no vault, your current one is kept. If the vault folder no longer
-  exists, the app says so: use **Choose Vault…**.
+  exists, the app says so: use **Choose Folder…**.
 - Presets from the old `custom-presets.json` are added to yours. A preset with a name you
   already have keeps your version.
 - The old files are only read, never changed or moved.
@@ -71,7 +71,7 @@ with those colours.
 ## Other differences
 
 - One bad value no longer rejects the whole file: the app skips that key and uses the rest.
-- `vaultPath` can't be changed from the settings page (as on the web); use **Choose Vault…**.
+- `vaultPath` can't be changed from the settings page (as on the web); use **Choose Folder…**.
 - Settings open in their own window from the menu instead of `http://127.0.0.1:3000/settings`.
 - Edit flares and particles from the web default theme aren't drawn; new installs start with
   motion off.

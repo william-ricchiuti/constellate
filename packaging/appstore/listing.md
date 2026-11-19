@@ -8,7 +8,7 @@ are for this text. Everything marked **TODO** needs William.
 | Field | Value |
 |---|---|
 | Name (30) | **Vault Wallpaper** (15). If taken: "Vault Wallpaper: Note Graph" (27) or "Vault Graph Wallpaper" (21) |
-| Subtitle (30) | **Your notes, as a living graph** (29) |
+| Subtitle (30) | **Notes or any folder as a graph** (30). Fallback, notes only: "Your notes, as a living graph" (29) |
 | Bundle ID | `com.williamricchiuti.vaultwallpaper` |
 | SKU | `vaultwallpaper-mac` |
 | Primary category | Productivity |
@@ -20,25 +20,34 @@ are for this text. Everything marked **TODO** needs William.
 | Marketing URL (optional) | `https://github.com/william-ricchiuti/vault-wallpaper` |
 | Privacy policy URL (required) | `https://github.com/william-ricchiuti/vault-wallpaper/blob/main/PRIVACY.md` (the text below, in [`PRIVACY.md`](../../PRIVACY.md)) |
 
-Don't use "Obsidian" in the name, subtitle or keywords: it's Obsidian's trademark
-(guideline 5.2.1; 2.3.7 for keywords). Saying the app works with Obsidian vaults in the
-description is fine.
+Don't use "Obsidian" (or Logseq, Dendron, Foam, Zettlr, org-roam) in the name, subtitle or
+keywords: they're other people's trademarks (guideline 5.2.1; 2.3.7 for keywords). Saying the
+app works with their folders in the description is fine.
 
 ## Promotional text (170)
 
-> Turn your Markdown notes into a calm, living desktop. Every note is a point, every link a
-> line, and the picture changes as you write.
+> Turn your notes, or any folder, into a calm, living desktop. Every note or file is a point,
+> every link a line, and the picture changes as you work.
 
-(140 characters. Promotional text can be changed at any time without a review.)
+(147 characters. Promotional text can be changed at any time without a review.)
 
 ## Description (4000)
 
-> Vault Wallpaper draws the graph of your notes behind your desktop icons. Every note is a
-> point, every link between notes is a line, and the picture updates as you write: save a
-> note and the wallpaper follows.
+> Vault Wallpaper draws the graph of your notes, or of any folder, behind your desktop icons.
+> Every note is a point, every link between notes is a line, and the picture updates as you
+> write: save a note and the wallpaper follows.
 >
-> It works with any folder of Markdown notes and understands Obsidian vaults: wikilinks,
-> Markdown links, tags and folders.
+> WHAT IT READS
+> • Obsidian vaults: notes, wikilinks, tags and folders.
+> • Logseq, Dendron, Foam, Zettlr and org-roam folders, and plain Markdown or org notes with
+>   links: wikilinks, Markdown links and org links.
+> • Any other folder: every file is a dot linked to its folder, coloured by file type and
+>   optionally sized by file size. Files are only listed, never opened.
+> The app detects what kind of folder you chose; Settings shows what it found and lets you
+> change it with "Read as". Until you choose a folder, a built-in sample graph shows.
+> Big folders stay quick: the graph holds up to 35,000 files, and build folders, package
+> folders and caches are skipped. Files that macOS has moved to iCloud are skipped, never
+> downloaded.
 >
 > MADE TO BE LEFT ON
 > • Still by default. A wallpaper with nothing new to show draws nothing at all, so it costs
@@ -61,7 +70,7 @@ description is fine.
 > PRIVATE BY DESIGN
 > • Your notes never leave your Mac. The app has no account, no analytics and makes no
 >   network connections.
-> • It only reads the folder you choose, and never changes your notes.
+> • It only reads the folder you choose, and never changes anything in it.
 >
 > FITS IN
 > • Lives in the menu bar, with no Dock icon.
@@ -74,23 +83,36 @@ description is fine.
 >
 > Vault Wallpaper is free and has no in-app purchases.
 >
-> Obsidian is a trademark of Dynalist Inc. Vault Wallpaper is an independent app and is not
-> affiliated with or endorsed by Obsidian.
+> Obsidian is a trademark of Dynalist Inc. Logseq, Dendron, Foam, Zettlr and org-roam are
+> the names of their respective projects. Vault Wallpaper is an independent app and is not
+> affiliated with or endorsed by any of them.
 
-(About 1,900 characters.) **Check before submitting:** that the Obsidian plugin is released
+(About 2,700 characters.) **Check before submitting:** that the Obsidian plugin is released
 (else drop that bullet), and the trademark owner's name on obsidian.md.
 
 ## Keywords (100)
 
 ```
-notes,graph,wallpaper,markdown,desktop,knowledge,zettelkasten,links,second brain,live,backlinks
+notes,graph,markdown,folder,files,desktop,knowledge,zettelkasten,links,second brain,backlinks,org
 ```
 
-(95 characters. Commas without spaces; don't repeat words from the name or category.)
+(97 characters. Commas without spaces; don't repeat words from the name or category, so
+"wallpaper" is left out: it's in the name.)
 
-## What's New (first version)
+## What's New
+
+First version:
 
 > First release.
+
+If the first App Store version ships after "beyond Obsidian" lands in a later update, use:
+
+> • Works with more than Obsidian: Logseq, Dendron, Foam, Zettlr, org-roam and plain Markdown
+>   notes, or any folder, where every file is a dot linked to its folder.
+> • The app detects the kind of folder; change it in Settings with "Read as".
+> • "Choose Vault…" is now "Choose Folder…". With no folder chosen, a sample graph shows.
+> • Big folders: up to 35,000 files, with build folders and caches skipped. Files in iCloud
+>   are never downloaded.
 
 ## Screenshots
 
@@ -149,15 +171,16 @@ The full policy is [`PRIVACY.md`](../../PRIVACY.md); keep the two in step.
 - Attachment (optional): a short screen recording of the first run helps; **TODO** if wanted.
 - Notes (4000):
 
-> Vault Wallpaper turns a folder of Markdown notes (for example an Obsidian vault) into the
-> desktop wallpaper: each note is a dot and each link between notes a line, drawn with Metal.
+> Vault Wallpaper turns a folder of notes (for example an Obsidian vault), or any folder, into
+> the desktop wallpaper: each note or file is a dot and each link a line, drawn with Metal.
 >
 > HOW TO TEST
 > 1. Open the app. It has no Dock icon and no main window; it lives in the menu bar (an icon of
->    three linked dots). On first launch an Open panel asks for the notes folder.
-> 2. Pick any folder containing .md files. A small sample vault: **TODO link to a zip of a
->    demo vault** (or use any folder of Markdown files). The graph appears behind the
->    desktop icons within a few seconds.
+>    three linked dots). A built-in sample graph shows until a folder is chosen; on first
+>    launch an Open panel asks for one (menu: Choose Folder…).
+> 2. Pick any folder: a folder of .md notes, or any other folder, such as Documents, where
+>    every file becomes a dot linked to its folder. A small sample vault: **TODO link to a zip
+>    of a demo vault**. The graph appears behind the desktop icons within a few seconds.
 > 3. Menu bar icon > Settings… changes the look (try the theme tiles); the wallpaper updates
 >    live. Export PNG saves a picture to Pictures > Vault Wallpaper.
 > 4. Edit and save a note in the folder: the wallpaper updates.

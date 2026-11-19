@@ -6,6 +6,28 @@ All notable changes to Vault Wallpaper. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- Other notes apps: Logseq (pages, journals, tags, aliases, namespaces), Dendron (dotted
+  hierarchies, multi-vault), and Foam, Zettlr, org-roam or plain Markdown and org notes
+  (wikilinks, Markdown links, reference links, org `file:` and `id:` links).
+- Any folder: every file is a dot linked to its folder, coloured by file type, optionally
+  sized by file size (`nodeSize: "fileSize"`). Files are listed, never opened.
+- Detection: the app works out what kind of folder it was given (`.obsidian/`,
+  `logseq/config.edn`, `dendron.yml`, `.foam/`, else a small sample of the files) and shows
+  the result and the reason in Settings → Folder, where **Read as** overrides it
+  (`sourceKind`).
+- Guardrails outside Obsidian vaults: at most 35,000 files in the graph (the menu says when a
+  folder has more), `node_modules`, build folders, caches and `~/Library` skipped, and iCloud
+  placeholders skipped without being downloaded.
+- A built-in sample graph shows while no folder is chosen.
+
+### Changed
+
+- **Choose Vault…** is now **Choose Folder…**, and the Open panel asks for "a notes folder or
+  any folder".
+- Obsidian vaults are read exactly as before; existing configs and layouts are unchanged.
+
 ## [1.0.0-beta.1] - unreleased
 
 The first beta of the native macOS app, a rewrite of the web version
