@@ -16,6 +16,12 @@
 //!
 //! `controls.js` drives every control type and prints what reached the file; note that its
 //! Copy JSON step replaces the clipboard.
+//!
+//! The Folder section shows a stand-in folder: `VW_SETTINGS_KIND=<kind>` (default
+//! `folder`; `sample` for "no folder chosen"), plus `VW_SETTINGS_CAPPED=1` for the cap
+//! warning. `folder.js` checks that section (run it with the default kind):
+//!
+//!   VW_SETTINGS_CAPPED=1 VW_SETTINGS_SCRIPT=crates/app/examples/settings-checks/folder.js cargo run -p vault-wallpaper --example settings
 
 #[allow(dead_code)]
 #[path = "../src/settings/mod.rs"]
@@ -23,8 +29,9 @@ mod settings;
 
 use std::path::PathBuf;
 
-use settings::SettingsWindow;
+use settings::{FolderInfo, SettingsWindow};
 use vw_core::config::{self, ConfigWatcher};
+use vw_core::vault::SourceKind;
 use winit::application::ApplicationHandler;
 use winit::event::WindowEvent;
 use winit::event_loop::{ActiveEventLoop, EventLoop, EventLoopProxy};
@@ -69,6 +76,7 @@ impl ApplicationHandler<Event> for App {
             ("journal".into(), 17),
             ("idea".into(), 5),
         ]);
+        s.set_folder(stand_in_folder());
         println!("settings window id: {:?}", s.window_id());
         self.settings = Some(s);
 
@@ -99,6 +107,22 @@ impl ApplicationHandler<Event> for App {
             self.settings = None;
             event_loop.exit();
         }
+    }
+}
+
+/// The folder the page shows, from `VW_SETTINGS_KIND` and `VW_SETTINGS_CAPPED`.
+fn stand_in_folder() -> FolderInfo {
+    let kind = std::env::var("VW_SETTINGS_KIND").unwrap_or_else(|_| "folder".into());
+    if kind == "sample" {
+        return FolderInfo::default();
+    }
+    let kind = SourceKind::parse(&kind).filter(|k| *k != SourceKind::Auto).unwrap_or(SourceKind::Folder);
+    FolderInfo {
+        path: Some("~/Documents/Example".into()),
+        kind: Some(kind),
+        reason: "no notes".into(),
+        capped: std::env::var_os("VW_SETTINGS_CAPPED").is_some(),
+        problem: None,
     }
 }
 

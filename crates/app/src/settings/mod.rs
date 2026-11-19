@@ -15,6 +15,7 @@
 //! // Open (e.g. from a menu item); if one is already open, call `focus()` instead.
 //! self.settings = Some(SettingsWindow::open(event_loop, config_path)?);
 //! settings.set_tags(graph_tag_counts);           // optional, see `set_tags`
+//! settings.set_folder(folder_info);              // optional, see `set_folder`
 //!
 //! // In `window_event`, before anything else for that id:
 //! if let Some(s) = &mut self.settings && s.window_id() == id {
@@ -33,9 +34,9 @@
 //! - Text fields need an Edit menu for Cmd+C/V/X/A/Z. [`open`](SettingsWindow::open)
 //!   adds one to the app's main menu if it has none ([`install_edit_menu`]). If the app
 //!   replaces its main menu later, include an Edit menu or call `install_edit_menu` again.
-//! - A patch that sets `ignorePaths` or `showUnresolvedLinks` needs a vault rescan. The
-//!   window doesn't do that; the app's config-watcher callback should compare the old and
-//!   new values, as it does for hand edits.
+//! - A patch that sets `ignorePaths`, `showUnresolvedLinks`, `sourceKind` or `nodeSize`
+//!   needs a vault rescan. The window doesn't do that; the app's config-watcher callback
+//!   should compare the old and new values, as it does for hand edits.
 //! - With an accessory (menu-bar-only) activation policy the window still opens in
 //!   front: `open` and `focus` activate the app.
 
@@ -57,6 +58,7 @@ use winit::window::{Window, WindowId};
 use wry::{PageLoadEvent, WebView, WebViewBuilder, WebViewExtMacOS, WryWebView};
 
 use api::Backend;
+pub use api::FolderInfo;
 
 /// The page's address. The scheme is registered for this web view only.
 const START_URL: &str = "vw://app/settings.html";
@@ -221,6 +223,18 @@ impl SettingsWindow {
         let _ = self
             .webview
             .evaluate_script("window.vwTagsChanged && window.vwTagsChanged()");
+    }
+
+    /// Supplies what the page shows about the folder (path, detected kind, cap), and
+    /// refreshes the page if it's showing. The app sends it after opening the window and
+    /// whenever the folder is opened, fails, or crosses the cap.
+    pub fn set_folder(&self, folder: FolderInfo) {
+        if let Ok(mut b) = self.backend.lock() {
+            b.folder = folder;
+        }
+        let _ = self
+            .webview
+            .evaluate_script("window.vwFolderChanged && window.vwFolderChanged()");
     }
 }
 
