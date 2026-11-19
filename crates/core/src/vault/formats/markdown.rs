@@ -137,25 +137,25 @@ pub fn blank_code(content: &str) -> String {
     let mut out = String::with_capacity(content.len());
     let mut fence: Option<(char, usize)> = None;
     for line in content.split_inclusive('\n') {
-        let trimmed = line.trim_start_matches(' ');
-        let indent = line.len() - trimmed.len();
-        let run = |c: char| trimmed.chars().take_while(|&x| x == c).count();
+        // Fences may be indented or open inside a list item (`- ```` in Logseq).
+        let trimmed = line.trim_start_matches([' ', '\t']);
+        let run = |t: &str, c: char| t.chars().take_while(|&x| x == c).count();
         match fence {
             Some((c, n)) => {
-                let r = run(c);
-                if indent <= 3 && r >= n && trimmed[r * c.len_utf8()..].trim().is_empty() {
+                let r = run(trimmed, c);
+                if r >= n && trimmed[r..].trim().is_empty() {
                     fence = None;
                 }
                 out.push_str(&blank(line));
             }
             None => {
-                let opener = if indent <= 3 {
-                    ['`', '~'].into_iter().map(|c| (c, run(c))).find(|&(_, r)| r >= 3)
-                } else {
-                    None
-                };
+                let body = ["- ", "* ", "+ "]
+                    .iter()
+                    .find_map(|m| trimmed.strip_prefix(m))
+                    .map_or(trimmed, |b| b.trim_start_matches([' ', '\t']));
+                let opener = ['`', '~'].into_iter().map(|c| (c, run(body, c))).find(|&(_, r)| r >= 3);
                 if let Some((c, r)) = opener
-                    && !(c == '`' && trimmed[r..].contains('`'))
+                    && !(c == '`' && body[r..].contains('`'))
                 {
                     fence = Some((c, r));
                     out.push_str(&blank(line));
@@ -316,6 +316,9 @@ mod tests {
         assert_eq!(blanked.len(), text.len());
         assert_eq!(links(&blanked, "").0, ["x", "v"]);
         assert!(!blanked.contains("[[w]]") && !blanked.contains("[[u]]") && !blanked.contains("#tag"));
+        // Fences inside list items, as Logseq writes them.
+        let blanked = blank_code("- ```clojure\n  [[a]]\n  ```\n- [[b]]\n");
+        assert!(!blanked.contains("[[a]]") && blanked.contains("[[b]]"));
         // An unclosed backtick is just text.
         assert_eq!(blank_code("a ` [b](b.md)"), "a ` [b](b.md)");
     }
