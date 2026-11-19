@@ -64,12 +64,14 @@ fn sample(root: &Path) -> Detection {
     let mut files = 0usize;
     let mut notes: Vec<PathBuf> = Vec::new();
     let mut seen = 0usize;
-    let mut queue = std::collections::VecDeque::from([root.to_path_buf()]);
-    'walk: while let Some(dir) = queue.pop_front() {
+    // Depth first, so a tree with many folders still reaches files within the sample.
+    let mut stack = vec![root.to_path_buf()];
+    'walk: while let Some(dir) = stack.pop() {
         let Ok(read) = fs::read_dir(&dir) else { continue };
         let mut names: Vec<(String, PathBuf)> =
             read.flatten().filter_map(|e| Some((e.file_name().to_str()?.to_string(), e.path()))).collect();
         names.sort_unstable();
+        let mut subdirs = Vec::new();
         for (name, path) in names {
             seen += 1;
             if seen > SAMPLE_ENTRIES {
@@ -84,7 +86,7 @@ fn sample(root: &Path) -> Detection {
             }
             if meta.is_dir() {
                 if !guard.skip_dir(&dir, &name, &path) {
-                    queue.push_back(path);
+                    subdirs.push(path);
                 }
             } else if meta.is_file() {
                 files += 1;
@@ -93,6 +95,8 @@ fn sample(root: &Path) -> Detection {
                 }
             }
         }
+        // Reversed, so the first folder by name is visited next.
+        stack.extend(subdirs.into_iter().rev());
     }
     if notes.is_empty() {
         return Detection { kind: SourceKind::Folder, reason: "no notes".into() };
@@ -185,5 +189,18 @@ mod tests {
         }
         write(r, "node_modules/pkg/a.md", "[[x]]");
         assert_eq!(detect(r).kind, SourceKind::Folder);
+    }
+
+    #[test]
+    fn deep_trees_still_reach_their_notes() {
+        // More folders than the sample's entry budget before any file, breadth first.
+        let d = tempfile::tempdir().unwrap();
+        let r = d.path();
+        for a in 0..50 {
+            for b in 0..50 {
+                write(r, &format!("a{a:02}/b{b:02}/n.md"), &format!("[[a{a:02}]] [[b{b:02}]]"));
+            }
+        }
+        assert_eq!(detect(r).kind, SourceKind::Notes);
     }
 }
