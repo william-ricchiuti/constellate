@@ -271,3 +271,6 @@ fn apply_size_weights<'a>(graph: &mut Graph, entries: impl IntoIterator<Item = &
         }
     }
 }
+
+#[cfg(test)]
+mod tests;
