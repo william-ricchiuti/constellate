@@ -31,10 +31,46 @@ fn every_enum_value_is_accepted_and_typed() {
         for v in set {
             let mut c = Config::default();
             c.apply_patch(&json!({ key: v })).unwrap_or_else(|e| panic!("{key}={v}: {e}"));
-            assert_eq!(serde_json::to_value(&c).unwrap()[key], json!(v));
+            match serde_json::to_value(&c).unwrap().get(key) {
+                Some(got) => assert_eq!(*got, json!(v)),
+                // Native reading keys are left out while at their default.
+                None => assert!(matches!((key, *v), ("sourceKind", "auto") | ("nodeSize", "links")), "{key}={v} missing"),
+            }
         }
         assert!(!patch_ok(json!({ key: "nope" })), "{key}");
     }
+}
+
+#[test]
+fn reading_keys_are_native_and_omitted_at_default() {
+    // An existing config saves exactly as before: neither key appears.
+    let text = serde_json::to_value(Config::default()).unwrap();
+    assert!(text.get("sourceKind").is_none() && text.get("nodeSize").is_none());
+
+    let mut c = Config::default();
+    let keys = c.apply_patch(&json!({ "sourceKind": "logseq", "nodeSize": "fileSize" })).unwrap();
+    assert_eq!(keys.len(), 2);
+    assert_eq!(c.source_kind, SourceKind::Logseq);
+    assert_eq!(c.node_size, NodeSize::FileSize);
+    let saved = serde_json::to_value(&c).unwrap();
+    assert_eq!(saved["sourceKind"], "logseq");
+    assert_eq!(saved["nodeSize"], "fileSize");
+    let opts = c.vault_options();
+    assert_eq!(opts.kind, SourceKind::Logseq);
+    assert!(opts.size_by_file);
+    // Default config: auto, sized by links.
+    let opts = Config::default().vault_options();
+    assert_eq!(opts.kind, SourceKind::Auto);
+    assert!(!opts.size_by_file);
+
+    for bad in [json!("Obsidian"), json!("roam"), json!(1), json!(null)] {
+        assert!(!patch_ok(json!({ "sourceKind": bad.clone() })));
+        assert_eq!(dropped(json!({ "vaultPath": "/x", "sourceKind": bad, "zoom": 2 })), ["sourceKind"]);
+    }
+    assert!(!patch_ok(json!({ "nodeSize": "filesize" })));
+    let s = file(json!({ "vaultPath": "/x", "sourceKind": "folder", "nodeSize": "fileSize" }));
+    assert!(s.issues.is_empty());
+    assert_eq!(s.config.source_kind, SourceKind::Folder);
 }
 
 #[test]

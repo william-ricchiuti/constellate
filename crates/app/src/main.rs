@@ -672,7 +672,9 @@ impl App {
         let old = std::mem::replace(&mut self.cfg, cfg);
         let vault_changed = self.vault_path() != old_vault
             || old.ignore_paths != self.cfg.ignore_paths
-            || old.show_unresolved_links != self.cfg.show_unresolved_links;
+            || old.show_unresolved_links != self.cfg.show_unresolved_links
+            || old.source_kind != self.cfg.source_kind
+            || old.node_size != self.cfg.node_size;
         if (old.layout != self.cfg.layout || old.cluster_by_tag != self.cfg.cluster_by_tag)
             && let Some(engine) = &self.engine
         {

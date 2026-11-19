@@ -17,10 +17,10 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 use crate::layout::{LayoutKind, LayoutOptions};
-use crate::vault::{GraphOptions, VaultOptions};
+use crate::vault::{GraphOptions, SourceKind, VaultOptions};
 
 pub use store::{default_path, import_legacy, load, save};
-pub use validate::{THEMES, is_hex_color, sanitize_file, sanitize_patch};
+pub use validate::{NODE_SIZES, SOURCE_KINDS, THEMES, is_hex_color, sanitize_file, sanitize_patch};
 pub use watch::{ConfigWatcher, DEBOUNCE, watch};
 
 /// Every setting. Colours stay `#rrggbb` strings, as stored; [`rgb`] decodes them.
@@ -99,6 +99,17 @@ pub struct Config {
     // Performance
     pub max_fps: u32,
     pub idle_fps: u32,
+    // Reading (native only; left out of the file while at their defaults, so an
+    // existing config saves exactly as before)
+    /// How the folder is read; `auto` detects it.
+    #[serde(default, skip_serializing_if = "is_default")]
+    pub source_kind: SourceKind,
+    #[serde(default, skip_serializing_if = "is_default")]
+    pub node_size: NodeSize,
+}
+
+fn is_default<T: Default + PartialEq>(v: &T) -> bool {
+    *v == T::default()
 }
 
 impl Default for Config {
@@ -168,6 +179,8 @@ impl Default for Config {
             rotate: Rotate::default(),
             max_fps: 30,
             idle_fps: 10,
+            source_kind: SourceKind::Auto,
+            node_size: NodeSize::Links,
         }
     }
 }
@@ -191,6 +204,15 @@ string_enum!(Palette { Auto, Aurora, Riso, Metro, Pastel, Earth, Neon, Viridis, 
 string_enum!(TimeOfDay { Off, Tint, Palette });
 string_enum!(Overlay { None, Clock, Stats, Note });
 string_enum!(LabelSource { Hubs, Recent });
+
+/// What a node's size shows: its link count (as always) or its size on disk.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum NodeSize {
+    #[default]
+    Links,
+    FileSize,
+}
 
 /// Per-theme label overrides; an unset field means "the theme decides".
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
@@ -293,7 +315,8 @@ impl Config {
 
     /// Applies a settings-UI update. All or nothing: an unknown or invalid key leaves
     /// `self` untouched. Returns the keys that were set, so callers can tell whether the
-    /// vault needs a rescan (`ignorePaths`, `showUnresolvedLinks`).
+    /// vault needs a rescan (`ignorePaths`, `showUnresolvedLinks`, `sourceKind`,
+    /// `nodeSize`).
     pub fn apply_patch(&mut self, raw: &Value) -> Result<Vec<String>, ConfigError> {
         let clean = sanitize_patch(raw)?;
         let keys = clean.keys().cloned().collect();
@@ -305,6 +328,8 @@ impl Config {
         VaultOptions {
             ignore_paths: self.ignore_paths.clone(),
             graph: GraphOptions { show_unresolved_links: self.show_unresolved_links },
+            kind: self.source_kind,
+            size_by_file: self.node_size == NodeSize::FileSize,
         }
     }
 

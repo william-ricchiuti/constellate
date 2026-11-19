@@ -104,7 +104,8 @@ impl LayoutGraph {
             .iter()
             .zip(&degree)
             .map(|(n, &d)| {
-                let d = f64::from(d).sqrt();
+                // A size override (file size) stands in for the link count.
+                let d = n.weight.unwrap_or(f64::from(d)).sqrt();
                 if n.ghost { 1.5 + d * 0.8 } else { 2.2 + d * 1.45 }
             })
             .collect();

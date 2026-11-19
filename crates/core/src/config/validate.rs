@@ -18,6 +18,10 @@ const TIME_OF_DAY: &[&str] = &["off", "tint", "palette"];
 const OVERLAYS: &[&str] = &["none", "clock", "stats", "note"];
 const LABEL_SOURCES: &[&str] = &["hubs", "recent"];
 const RENDERERS: &[&str] = &["auto", "canvas", "webgl"];
+/// Native only: `SourceKind` names.
+pub const SOURCE_KINDS: &[&str] = &["auto", "obsidian", "notes", "logseq", "dendron", "folder"];
+/// Native only: `NodeSize` names.
+pub const NODE_SIZES: &[&str] = &["links", "fileSize"];
 
 /// Theme ids accepted: the web version's (its `themes/*.js` plus `default`), kept so old
 /// configs and presets import, followed by the native app's own themes (designed for
@@ -128,6 +132,9 @@ const RULES: &[(&str, Rule)] = &[
     ("rotate", Rotate),
     ("maxFps", Int(0, 60)),
     ("idleFps", Int(0, 30)),
+    // Native only (the web version rejects them as unknown, like the native themes).
+    ("sourceKind", Enum(SOURCE_KINDS)),
+    ("nodeSize", Enum(NODE_SIZES)),
 ];
 
 /// Web-only keys still in `VALIDATORS`: checked so accept/reject matches, then dropped.

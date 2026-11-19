@@ -176,7 +176,9 @@ pub fn derive_look(graph: &Graph, layout: &LayoutGraph, cfg: &Config, ctx: &Look
     // The default renderer's radius, which is also the layout's collision radius.
     let node_radius: Vec<f32> = (0..n)
         .map(|i| {
-            let d = (layout.degree[i] as f32).sqrt();
+            // A size override (file size) stands in for the link count.
+            let w = graph.nodes.get(i).and_then(|g| g.weight).map_or(layout.degree[i] as f32, |w| w as f32);
+            let d = w.sqrt();
             if layout.ghost[i] { 1.5 + d * 0.8 } else { 2.2 + d * 1.45 }
         })
         .collect();
@@ -519,6 +521,7 @@ mod tests {
             mtime,
             folder: folder.map(Into::into),
             ghost: false,
+            weight: None,
         }
     }
 

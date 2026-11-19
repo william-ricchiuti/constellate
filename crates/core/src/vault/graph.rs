@@ -13,7 +13,7 @@ use serde::{Serialize, Serializer};
 
 use super::scan::{Entry, relative};
 
-#[derive(Debug, Clone, PartialEq, Serialize)]
+#[derive(Debug, Clone, Default, PartialEq, Serialize)]
 pub struct Node {
     pub id: String,
     /// The note's file name when it differs from the id (duplicate basenames get a
@@ -34,6 +34,10 @@ pub struct Node {
     /// An unresolved link target with no note behind it.
     #[serde(skip_serializing_if = "std::ops::Not::not")]
     pub ghost: bool,
+    /// Size override, as a link count: when set, the node is drawn as big as a note with
+    /// this many links (`nodeSize: "fileSize"`). Never set for Obsidian by default.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub weight: Option<f64>,
 }
 
 /// JavaScript prints whole-number doubles without ".0"; keep that so the output reads
@@ -61,6 +65,9 @@ pub struct Graph {
     pub tagged: usize,
     /// Every tag and how many notes carry it.
     pub discovered_tags: BTreeMap<String, usize>,
+    /// The folder has more files than the cap; this graph holds the first ones.
+    #[serde(skip_serializing_if = "std::ops::Not::not")]
+    pub capped: bool,
 }
 
 #[derive(Debug, Clone)]
@@ -93,6 +100,13 @@ fn note_id(entry: &Entry, root: &Path, duplicated: &HashSet<&str>) -> String {
     let rel = rel_slash(root, &entry.path);
     let rel = rel.strip_suffix(".md").unwrap_or(&rel);
     if rel.contains('/') { rel.to_string() } else { format!("./{rel}") }
+}
+
+/// Degree-equivalent size of a file of `bytes`, for `nodeSize: "fileSize"`:
+/// 1 KB ≈ 0.25, 1 MB ≈ 25, 1 GB ≈ 100.
+pub fn size_weight(bytes: u64) -> f64 {
+    let l = (1.0 + bytes as f64 / 1024.0).log2();
+    l * l / 4.0
 }
 
 pub fn materialize<'a>(entries: impl IntoIterator<Item = &'a Entry>, root: &Path, opts: &GraphOptions) -> Graph {
@@ -160,6 +174,7 @@ pub fn materialize<'a>(entries: impl IntoIterator<Item = &'a Entry>, root: &Path
             mtime: (e.mtime_ms != 0.0).then_some(e.mtime_ms),
             folder,
             ghost: false,
+            weight: None,
         });
     }
 
@@ -211,6 +226,7 @@ pub fn materialize<'a>(entries: impl IntoIterator<Item = &'a Entry>, root: &Path
                         mtime: None,
                         folder: None,
                         ghost: true,
+                        weight: None,
                     });
                     if seen.insert((source, ghost)) {
                         pairs.push((source, ghost));
@@ -230,7 +246,7 @@ pub fn materialize<'a>(entries: impl IntoIterator<Item = &'a Entry>, root: &Path
         .map(|(s, t)| Link { source: nodes[s as usize].id.clone(), target: nodes[t as usize].id.clone() })
         .collect();
 
-    Graph { nodes, links, tagged, discovered_tags }
+    Graph { nodes, links, tagged, discovered_tags, capped: false }
 }
 
 impl Graph {
@@ -261,7 +277,7 @@ mod edit_tests {
     use super::*;
 
     fn node(id: &str, mtime: Option<f64>, ghost: bool) -> Node {
-        Node { id: id.into(), label: None, tag: None, tags: None, mtime, folder: None, ghost }
+        Node { id: id.into(), mtime, ghost, ..Node::default() }
     }
 
     fn graph(nodes: Vec<Node>) -> Graph {

@@ -21,7 +21,7 @@ fn main() {
     let t = Instant::now(); engine.set_graph(graph.clone()); wait(&rx, t, "relaunch from cache");
     let mut edited = graph.clone();
     let target = edited.nodes[0].id.clone();
-    edited.nodes.push(vw_core::vault::Node { id: "zz-new-note".into(), label: None, tag: None, tags: None, mtime: Some(1.0), folder: None, ghost: false });
+    edited.nodes.push(vw_core::vault::Node { id: "zz-new-note".into(), mtime: Some(1.0), ..Default::default() });
     edited.links.push(vw_core::vault::Link { source: "zz-new-note".into(), target });
     let t = Instant::now(); engine.set_graph(edited); wait(&rx, t, "one new note");
     let _ = std::fs::remove_file(&cache);

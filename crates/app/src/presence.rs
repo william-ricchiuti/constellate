@@ -253,7 +253,7 @@ mod tests {
     const T: f64 = 1_762_400_000_000.0;
 
     fn node(id: &str) -> Node {
-        Node { id: id.into(), label: None, tag: None, tags: None, mtime: None, folder: None, ghost: false }
+        Node { id: id.into(), ..Node::default() }
     }
 
     /// A - B - C, and D alone.

@@ -12,6 +12,9 @@ use std::time::UNIX_EPOCH;
 
 use rayon::prelude::*;
 
+use super::formats::NoteExtra;
+use super::guard::{Guard, is_dataless};
+use super::kind::SourceKind;
 use super::parse::{extract_tags, extract_wikilinks};
 
 /// One parsed note.
@@ -24,6 +27,10 @@ pub struct Entry {
     pub mtime_ms: f64,
     pub tags: Vec<String>,
     pub wikilinks: Vec<String>,
+    /// Bytes on disk, for `nodeSize: "fileSize"`.
+    pub size: u64,
+    /// What the other notes formats know beyond tags and wikilinks. `None` for Obsidian.
+    pub extra: Option<Box<NoteExtra>>,
 }
 
 /// The path relative to the vault root, as a string with the platform separator,
@@ -114,10 +121,90 @@ pub fn parse_entry(path: &Path) -> Option<Entry> {
         mtime_ms,
         tags: extract_tags(&content),
         wikilinks: extract_wikilinks(&content),
+        size: meta.len(),
+        extra: None,
     })
 }
 
 /// Parses many files in parallel, dropping any that fail.
 pub fn parse_entries(paths: &[PathBuf]) -> Vec<Entry> {
     paths.par_iter().filter_map(|p| parse_entry(p)).collect()
+}
+
+/// The files a walk found.
+#[derive(Debug, Default)]
+pub struct Walk {
+    pub files: Vec<PathBuf>,
+    /// The walk stopped at the guard's cap; there are more files than `files`.
+    pub capped: bool,
+}
+
+/// The files of `kind` under `dir` (the root or a folder inside it). Obsidian walks
+/// exactly as [`collect_markdown_files`]. Every other kind walks breadth first, in
+/// name order (so a capped walk keeps the same files every time), with the guard's
+/// skips, without entering or reading iCloud placeholders, and stops at the cap.
+/// `already` is how many files the vault holds outside `dir`, counted against the cap.
+pub fn collect_files(root: &Path, dir: &Path, patterns: &[String], kind: SourceKind, guard: &Guard, already: usize) -> Walk {
+    if !kind.guarded() {
+        return Walk { files: collect_markdown_files(root, dir, patterns), capped: false };
+    }
+    let mut walk = Walk::default();
+    let mut visited = 0usize;
+    let mut queue = std::collections::VecDeque::from([dir.to_path_buf()]);
+    while let Some(dir) = queue.pop_front() {
+        let Ok(read) = fs::read_dir(&dir) else { continue };
+        let mut names: Vec<(String, PathBuf)> = read
+            .flatten()
+            .filter_map(|e| Some((e.file_name().to_str()?.to_string(), e.path())))
+            .collect();
+        names.sort_unstable();
+        for (name, path) in names {
+            visited += 1;
+            if visited > guard.max_visited {
+                walk.capped = true;
+                return walk;
+            }
+            if name.starts_with('.') || is_ignored(root, &path, patterns) {
+                continue;
+            }
+            // lstat: symlinks are never followed, and nothing is downloaded.
+            let Ok(meta) = fs::symlink_metadata(&path) else { continue };
+            if is_dataless(&meta) {
+                continue;
+            }
+            if meta.is_dir() {
+                if !guard.skip_dir(&dir, &name, &path) {
+                    queue.push_back(path);
+                }
+            } else if meta.is_file() && kind.wants_name(&name) {
+                if already + walk.files.len() >= guard.max_files {
+                    walk.capped = true;
+                    return walk;
+                }
+                walk.files.push(path);
+            }
+        }
+    }
+    walk
+}
+
+/// Whether a path inside a guarded vault is skipped by the guard: any folder on the
+/// way down that the walk would not enter.
+pub fn guard_skips(root: &Path, path: &Path, guard: &Guard) -> bool {
+    let Ok(rel) = path.strip_prefix(root) else { return true };
+    let mut parent = root.to_path_buf();
+    let mut comps = rel.components().peekable();
+    while let Some(c) = comps.next() {
+        let here = parent.join(c);
+        // The last component is the file itself (or the folder an event named).
+        let is_last = comps.peek().is_none();
+        if let Some(name) = c.as_os_str().to_str()
+            && (!is_last || here.is_dir())
+            && guard.skip_dir(&parent, name, &here)
+        {
+            return true;
+        }
+        parent = here;
+    }
+    false
 }
