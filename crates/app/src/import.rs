@@ -89,7 +89,7 @@ pub fn run(config_path: &Path, current: &Config) -> bool {
         .is_none_or(|p| !Path::new(p).is_dir())
     {
         notes.push(
-            "The vault folder in that file wasn't found; use Choose Vault… to pick it.".into(),
+            "The folder in that file wasn't found; use Choose Folder… to pick it.".into(),
         );
     }
     message(MessageLevel::Info, "Settings imported", &notes.join("\n"));

@@ -14,6 +14,7 @@
 //! | `GET /api/defaults` | the default config, with motion off (as for a new install) |
 //! | `GET /api/themes` | `[{ id, name, description, dark, native?, preview? }]` for each of [`config::THEMES`], native themes first |
 //! | `GET /api/tags` | `{ tag: noteCount }`, supplied by the app ([`Backend::tags`]) |
+//! | `GET /api/folder` | the folder on show: path, detected kind and why, cap ([`FolderInfo`], supplied by the app) |
 //! | `GET/POST/DELETE /api/custom-presets` | the `custom-presets.json` sidecar |
 //!
 //! Not served: `/events` (SSE; the window pushes changes with `evaluate_script` instead),
@@ -26,6 +27,7 @@ use std::path::{Path, PathBuf};
 
 use serde_json::{Map, Value, json};
 use vw_core::config::{self, Config, ConfigError};
+use vw_core::vault::{MAX_FILES, SourceKind};
 use wry::http::{Method, Request, Response, StatusCode, header};
 
 const SETTINGS_HTML: &[u8] = include_bytes!("../../assets/settings.html");
@@ -89,12 +91,48 @@ const THEME_PREVIEWS: &[(&str, &[u8])] = &[
     ("pulse", include_bytes!("../../assets/themes/pulse.jpg")),
 ];
 
+/// What the settings page shows about the folder on the wallpaper. The default is "no
+/// folder chosen" (the sample graph).
+#[derive(Debug, Clone, Default, PartialEq)]
+pub struct FolderInfo {
+    /// The chosen folder (`~` for the home folder); `None` while the sample graph shows.
+    pub path: Option<String>,
+    /// What the folder was read as (never `Auto`); `None` until it has been scanned.
+    pub kind: Option<SourceKind>,
+    /// Why `kind` was chosen ("found logseq/config.edn", "set in settings").
+    pub reason: String,
+    /// The folder has more files than the cap; the graph holds the first ones.
+    pub capped: bool,
+    /// Why the folder isn't shown (the menu's status line), if it isn't.
+    pub problem: Option<String>,
+}
+
+impl FolderInfo {
+    /// `GET /api/folder`. `kinds` lists the "Read as" choices so the page's labels come
+    /// from [`SourceKind::label`].
+    pub fn to_json(&self) -> Value {
+        json!({
+            "path": self.path,
+            "sample": self.path.is_none(),
+            "kind": self.kind.map(SourceKind::name),
+            "kindLabel": self.kind.map(SourceKind::label),
+            "reason": self.reason,
+            "capped": self.capped,
+            "maxFiles": MAX_FILES,
+            "problem": self.problem,
+            "kinds": SourceKind::ALL.iter().map(|k| json!({ "id": k.name(), "label": k.label() })).collect::<Vec<_>>(),
+        })
+    }
+}
+
 /// What the handler reads and writes. Shared between the web view's protocol handler and
 /// [`SettingsWindow`](super::SettingsWindow).
 pub struct Backend {
     pub config_path: PathBuf,
     /// Tag name and note count, from the live graph. Empty until the app supplies them.
     pub tags: Vec<(String, usize)>,
+    /// The folder on show, supplied by the app.
+    pub folder: FolderInfo,
 }
 
 type Reply = Response<Cow<'static, [u8]>>;
@@ -104,6 +142,7 @@ impl Backend {
         Backend {
             config_path,
             tags: Vec::new(),
+            folder: FolderInfo::default(),
         }
     }
 
@@ -138,6 +177,7 @@ impl Backend {
             (&Method::GET, "/api/defaults") => ok_json(&safe_config(&defaults())),
             (&Method::GET, "/api/themes") => ok_json(&themes()),
             (&Method::GET, "/api/tags") => ok_json(&self.tags_json()),
+            (&Method::GET, "/api/folder") => ok_json(&self.folder.to_json()),
             (_, "/api/custom-presets") => self.custom_presets(req),
             (&Method::GET, p) => {
                 let image = |dir: &str, list: &[(&str, &'static [u8])]| {
@@ -661,5 +701,50 @@ mod tests {
             Some("café bar")
         );
         assert_eq!(query_param("name=100%", "name").as_deref(), Some("100%"));
+    }
+
+    #[test]
+    fn folder_info() {
+        let mut b = temp_backend("folder");
+        let f = body(&b.handle(&req("GET", "vw://app/api/folder", None)));
+        assert_eq!(f["sample"], true, "no folder chosen: the sample graph");
+        assert_eq!(f["path"], Value::Null);
+        assert_eq!(f["kind"], Value::Null);
+        assert_eq!(f["maxFiles"], MAX_FILES);
+        let kinds: Vec<&str> = f["kinds"].as_array().unwrap().iter().map(|k| k["id"].as_str().unwrap()).collect();
+        assert_eq!(kinds, config::SOURCE_KINDS, "the Read as choices are the config's values");
+        assert_eq!(f["kinds"][0]["label"], "Detect automatically");
+
+        b.folder = FolderInfo {
+            path: Some("~/Notes".into()),
+            kind: Some(SourceKind::Logseq),
+            reason: "found logseq/config.edn".into(),
+            capped: true,
+            problem: None,
+        };
+        let f = body(&b.handle(&req("GET", "vw://app/api/folder", None)));
+        assert_eq!(f["sample"], false);
+        assert_eq!(f["path"], "~/Notes");
+        assert_eq!(f["kind"], "logseq");
+        assert_eq!(f["kindLabel"], "Logseq graph");
+        assert_eq!(f["reason"], "found logseq/config.edn");
+        assert_eq!(f["capped"], true);
+    }
+
+    #[test]
+    fn source_kind_and_node_size_save() {
+        let b = temp_backend("source-kind");
+        let r = b.handle(&req(
+            "POST",
+            "vw://app/api/config",
+            Some(json!({ "sourceKind": "folder", "nodeSize": "fileSize" })),
+        ));
+        assert_eq!(r.status(), 200, "{}", String::from_utf8_lossy(r.body()));
+        assert_eq!(body(&r)["sourceKind"], "folder");
+        let on_disk = config::load(&b.config_path).unwrap().config;
+        assert_eq!(on_disk.source_kind, SourceKind::Folder);
+        let r = b.handle(&req("POST", "vw://app/api/config", Some(json!({ "sourceKind": "evernote" }))));
+        assert_eq!(r.status(), 400);
+        let _ = fs::remove_dir_all(b.config_path.parent().unwrap());
     }
 }

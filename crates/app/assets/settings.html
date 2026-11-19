@@ -119,6 +119,7 @@
 
   .empty { padding: 16px; color: var(--dim); font-size: 13px; text-align: center; }
   .warn { font-size: 12px; color: var(--warn); padding: 10px 16px; }
+  .folder-path { font-size: 14px; overflow-wrap: anywhere; }
   .check-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 6px 12px; }
   .check-grid label { display: flex; align-items: center; gap: 6px; font-size: 13px; cursor: pointer; }
   .check-grid input { accent-color: var(--accent); width: 16px; height: 16px; }
@@ -157,6 +158,23 @@
 <div class="layout">
 
   <main class="controls-col">
+
+    <section class="group" aria-labelledby="h-vault">
+      <h2 id="h-vault">Folder</h2>
+      <div class="card">
+        <div class="block" id="folderInfo" role="status">
+          <div class="folder-path" id="folderPath">No folder chosen: showing a sample graph</div>
+          <div class="hint" id="folderKind">Choose Folder… in the menu bar to show your notes or any folder.</div>
+        </div>
+        <div class="warn" id="folderCapped" role="status" hidden></div>
+        <div data-fields="vault"></div>
+        <div class="block" id="ignorePaths-block">
+          <label for="ignorePaths">Ignored paths</label>
+          <div class="hint" id="ignorePaths-hint">One folder or file path per line, relative to the folder. Saved when you leave the box.</div>
+          <textarea id="ignorePaths" spellcheck="false" aria-describedby="ignorePaths-hint" placeholder=".obsidian&#10;templates"></textarea>
+        </div>
+      </div>
+    </section>
 
     <section class="group" aria-labelledby="h-style">
       <h2 id="h-style">Style</h2>
@@ -267,18 +285,6 @@
           <div class="check-grid" id="rotateThemes" role="group" aria-labelledby="rotateLabel"></div>
         </div>
         <div data-fields="rotation"></div>
-      </div>
-    </section>
-
-    <section class="group" aria-labelledby="h-vault">
-      <h2 id="h-vault">Vault</h2>
-      <div class="card">
-        <div class="block">
-          <label for="ignorePaths">Ignored paths</label>
-          <div class="hint" id="ignorePaths-hint">One folder or file path per line, relative to the vault. Saved when you leave the box.</div>
-          <textarea id="ignorePaths" spellcheck="false" aria-describedby="ignorePaths-hint" placeholder=".obsidian&#10;templates"></textarea>
-        </div>
-        <div data-fields="vault"></div>
       </div>
     </section>
 
@@ -398,13 +404,16 @@ const GROUPS = {
     { k: 'rotate.everyMinutes', web: true, t: 'int', label: 'Switch every (minutes)', min: 1, max: 1440, dep: c => !!(c.rotate && c.rotate.themes && c.rotate.themes.length) }
   ],
   vault: [
+    // Options come from /api/folder (SourceKind labels); this list is the fallback.
+    { k: 'sourceKind', t: 'select', def: 'auto', label: 'Read as', hint: 'How the folder is read. Changing it reads the folder again.', opts: [['auto', 'Detect automatically'], ['obsidian', 'Obsidian vault'], ['notes', 'Markdown or org notes'], ['logseq', 'Logseq graph'], ['dendron', 'Dendron workspace'], ['folder', 'Any folder']] },
+    { k: 'nodeSize', t: 'select', def: 'links', label: 'Node size', hint: 'Size nodes by their links or by bytes on disk', opts: [['links', 'Links'], ['fileSize', 'File size']] },
     { k: 'showUnresolvedLinks', t: 'toggle', label: 'Unresolved links', hint: "Ghost nodes for [[links]] to notes that don't exist yet" }
   ],
   performance: [
     { k: 'renderer', web: true, t: 'select', label: 'Renderer', hint: 'Auto picks WebGL when available', opts: [['auto', 'Auto'], ['canvas', 'Canvas 2D'], ['webgl', 'WebGL']] },
     { k: 'maxFps', t: 'range', label: 'Max FPS', min: 0, max: 60, step: 1, fmt: v => v === 0 ? 'only on change' : String(v) },
     { k: 'idleFps', web: true, t: 'range', label: 'Idle FPS', hint: 'Frame rate when nothing is happening', min: 0, max: 30, step: 1, fmt: v => v === 0 ? 'hold frame' : String(v) },
-    { k: 'autoScaleLargeVaults', t: 'toggle', label: 'Auto-scale large vaults', hint: 'Reduce particles, labels and edge density on dense graphs' },
+    { k: 'autoScaleLargeVaults', t: 'toggle', label: 'Auto-scale large graphs', hint: 'Reduce particles, labels and edge density on dense graphs' },
     { k: 'maxRenderedNodes', web: true, t: 'int', label: 'Max rendered nodes', hint: 'Excess hidden by lowest importance (lower = faster)', min: 100, max: 100000, step: 100 },
     { k: 'fastHash', web: true, t: 'toggle', label: 'Fast change detection', hint: 'Hash file metadata instead of contents' }
   ],
@@ -539,7 +548,7 @@ function applyForm(force, revertKeys) {
       hex.disabled = !isHex;
     } else if (f.t === 'color') {
       if (typeof v === 'string' && /^#[0-9a-fA-F]{6}$/.test(v)) el.value = v.toLowerCase();
-    } else if (!skip) el.value = v === undefined || v === null ? '' : v;
+    } else if (!skip) el.value = v === undefined || v === null ? (f.def ?? '') : v;
     const row = $(fid(f.k) + '-row');
     if (f.dep) {
       const on = !!f.dep(cfg);
@@ -756,11 +765,11 @@ $('presets').addEventListener('click', async e => {
   if (p) save(presetPatch(p));
 });
 
-// Keys worth carrying in a preset: everything except vault-specific data.
+// Keys worth carrying in a preset: everything except folder-specific data.
 function presetConfigFrom(c) {
   const out = {};
   for (const [k, v] of Object.entries(c || {})) {
-    if (k === 'tagColors' || k === 'ignorePaths') continue;
+    if (k === 'tagColors' || k === 'ignorePaths' || k === 'sourceKind' || k === 'nodeSize') continue;
     out[k] = k === 'labelStyle' ? cleanNested(k, v) : v;
   }
   return out;
@@ -923,7 +932,7 @@ function renderTags() {
   const active = document.activeElement;
   const focusTag = active && el.contains(active) ? { tag: active.dataset.tag, remove: active.classList.contains('tag-remove') } : null;
   tagSignature = sig;
-  if (!sorted.length) { el.innerHTML = '<div class="empty">No tags found in vault.</div>'; return; }
+  if (!sorted.length) { el.innerHTML = '<div class="empty">No tags found.</div>'; return; }
   el.innerHTML = sorted.map(([tag, count], i) => {
     const color = tc[tag] || '';
     const t = escapeHtml(tag);
@@ -953,6 +962,55 @@ $('tagList').addEventListener('click', e => {
   delete tc[btn.dataset.tag];
   save({ tagColors: tc });
 });
+// ---------- folder ----------
+// What the wallpaper shows: the chosen folder, what it was read as and why, and the cap.
+let folder = { sample: true };
+const COLOR_LABELS = { tag: ['Tag', 'File type'], folder: ['Folder', 'Top-level folder'] };
+function renderFolder() {
+  const f = folder || { sample: true };
+  const kind = f.kind || null;
+  $('folderPath').textContent = f.sample ? 'No folder chosen: showing a sample graph' : f.path;
+  $('folderKind').textContent = f.sample
+    ? 'Choose Folder… in the menu bar to show your notes or any folder.'
+    : f.problem ? f.problem
+    : kind ? `Detected: ${f.kindLabel || kind}${f.reason ? ' — ' + f.reason : ''}` : 'Reading the folder…';
+  const capped = $('folderCapped');
+  capped.hidden = !f.capped;
+  if (f.capped) {
+    const n = Number(f.maxFiles || 35000).toLocaleString('en-US');
+    capped.textContent = `This folder has more than ${n} files; showing the first ${n}. Choose a smaller folder or skip some subfolders.`;
+  }
+  // "Read as" labels from the app.
+  const sel = $(fid('sourceKind'));
+  if (Array.isArray(f.kinds) && f.kinds.length && sel) {
+    const want = f.kinds.map(k => k.id + '=' + k.label).join('|');
+    if (sel.dataset.kinds !== want) {
+      sel.innerHTML = f.kinds.map(k => `<option value="${escapeHtml(k.id)}">${escapeHtml(k.label)}</option>`).join('');
+      sel.dataset.kinds = want;
+      sel.value = cfg.sourceKind || 'auto';
+    }
+  }
+  // Folder-only bits stay out of the way for Obsidian vaults.
+  const obsidian = kind === 'obsidian';
+  const folderMode = kind === 'folder';
+  $(fid('nodeSize') + '-row').hidden = obsidian;
+  // Any folder has no [[links]] to leave unresolved.
+  $(fid('showUnresolvedLinks') + '-row').hidden = folderMode;
+  // In folder mode a node's tag is its file type, and colour by folder means top level.
+  const colorSel = $(fid('nodeColorMode'));
+  if (colorSel) {
+    for (const opt of colorSel.options) {
+      const l = COLOR_LABELS[opt.value];
+      if (l) opt.textContent = folderMode ? l[1] : l[0];
+    }
+  }
+  $('ignorePaths').placeholder = obsidian || !kind ? '.obsidian\ntemplates' : 'archive\ntemplates';
+}
+async function loadFolder() {
+  try { folder = await getJson('/api/folder'); } catch (e) { folder = { sample: true }; }
+  renderFolder();
+}
+
 async function loadTags() {
   try { allTags = await getJson('/api/tags'); } catch (e) { allTags = {}; }
   tagSignature = null;
@@ -996,11 +1054,12 @@ window.vwConfigChanged = async () => {
   try { cfg = await getJson('/api/config'); setConnStatus(true); applyForm(); } catch (e) { /* ignore */ }
 };
 window.vwTagsChanged = () => { loadTags(); };
+window.vwFolderChanged = () => { loadFolder(); };
 
 buildFields();
 ['accent', 'background'].forEach(k => $(fid(k)).addEventListener('input', updateContrast));
 loadThemes();
 loadPresets();
-loadConfig().then(loadTags);
+loadConfig().then(loadTags).then(loadFolder);
 </script>
 </body></html>

@@ -8,7 +8,7 @@ use tray_icon::{Icon, TrayIcon, TrayIconBuilder};
 pub enum Action {
     TogglePause,
     OpenSettings,
-    ChooseVault,
+    ChooseFolder,
     ImportWebConfig,
     OpenConfigFile,
     ExportPng,
@@ -34,7 +34,7 @@ impl AppMenu {
         let status = MenuItem::new("Vault Wallpaper", false, None);
         let pause = CheckMenuItem::new("Pause Wallpaper", true, false, None);
         let settings = MenuItem::new("Settings…", true, None);
-        let vault = MenuItem::new("Choose Vault…", true, None);
+        let folder = MenuItem::new("Choose Folder…", true, None);
         let import = MenuItem::new("Import Web Version Settings…", true, None);
         let config = MenuItem::new("Open Config File", true, None);
         let export = MenuItem::new("Export PNG", true, None);
@@ -42,7 +42,7 @@ impl AppMenu {
         let check = MenuItem::new("Check for Updates…", true, None);
         let quit = MenuItem::new("Quit Vault Wallpaper", true, None);
         let sep = PredefinedMenuItem::separator;
-        menu.append_items(&[&status, &sep(), &pause, &settings, &vault, &import, &sep(), &export, &config, &login, &sep()]).ok()?;
+        menu.append_items(&[&status, &sep(), &pause, &settings, &folder, &import, &sep(), &export, &config, &login, &sep()]).ok()?;
         if updates {
             menu.append(&check).ok()?;
         }
@@ -51,7 +51,7 @@ impl AppMenu {
             (check.id().clone(), Action::CheckForUpdates),
             (pause.id().clone(), Action::TogglePause),
             (settings.id().clone(), Action::OpenSettings),
-            (vault.id().clone(), Action::ChooseVault),
+            (folder.id().clone(), Action::ChooseFolder),
             (import.id().clone(), Action::ImportWebConfig),
             (config.id().clone(), Action::OpenConfigFile),
             (export.id().clone(), Action::ExportPng),
