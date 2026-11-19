@@ -1,4 +1,5 @@
-//! Vault Wallpaper: your Obsidian vault's graph, drawn behind the desktop icons.
+//! Vault Wallpaper: the link graph of your notes (an Obsidian vault, other notes apps, or
+//! any folder), drawn behind the desktop icons. With no folder chosen it shows a sample.
 //!
 //!   vault-wallpaper [--vault <path>] [--config <file>] [--front] [--cache <file>]
 //!
@@ -35,14 +36,14 @@ use objc2::rc::Retained;
 use objc2_app_kit::NSWindow;
 use vw_core::config::{self, Config, ConfigWatcher};
 use vw_core::layout::{LayoutEngine, LayoutFrame, LayoutGraph};
-use vw_core::vault::{Graph, Vault, VaultWatcher, watch};
+use vw_core::vault::{Graph, MAX_FILES, SourceKind, Vault, VaultWatcher, sample_graph, watch};
 use displays::Geom;
 use menu::{Action, AppMenu};
 use power::PowerState;
 use system::SysEvent;
 use overlay::{BurstOverlay, GlowOverlay, SCENE_LAYER_FORMAT, SceneLayer, SceneTarget};
 use presence::Presence;
-use settings::SettingsWindow;
+use settings::{FolderInfo, SettingsWindow};
 use tray_icon::menu::MenuEvent;
 use vw_render::{
     Ambient, EditBurst, FramingOptions, Gpu, Look, LookContext, SceneStyle, Theme, WallpaperRenderer, derive_look, preferred_format,
@@ -76,7 +77,9 @@ enum AppEvent {
     Graph(u64, Box<Graph>),
     /// Vault open number `generation` (scan and watch) finished in the background.
     Opened { generation: u64, path: PathBuf, result: Result<Box<OpenedVault>, VaultProblem> },
-    Layout(Box<LayoutFrame>),
+    /// A frame from layout engine number `.0` (the engine is replaced when the sample
+    /// graph gives way to a real folder, or back).
+    Layout(u64, Box<LayoutFrame>),
     Config(Box<Config>),
     Menu(MenuEvent),
     System(SysEvent),
@@ -89,6 +92,9 @@ struct OpenedVault {
     graph: Graph,
     notes: usize,
     scan_ms: f64,
+    /// What the folder was read as (never `Auto`), and why.
+    kind: SourceKind,
+    reason: String,
     watcher: Option<VaultWatcher>,
 }
 
@@ -117,9 +123,9 @@ impl VaultProblem {
     /// The menu's status line for this problem.
     fn status(&self, path: &std::path::Path) -> String {
         match self {
-            VaultProblem::NotFound => format!("Vault not found: {}", short_path(path)),
-            VaultProblem::Unreadable(_) => format!("Vault can't be read: {}", short_path(path)),
-            VaultProblem::NoAccess => format!("Choose Vault… to allow access to {}", short_path(path)),
+            VaultProblem::NotFound => format!("Folder not found: {}", short_path(path)),
+            VaultProblem::Unreadable(_) => format!("Folder can't be read: {}", short_path(path)),
+            VaultProblem::NoAccess => format!("Choose Folder… to allow access to {}", short_path(path)),
         }
     }
 }
@@ -138,6 +144,37 @@ fn short_path(path: &std::path::Path) -> String {
     } else {
         format!("{prefix}{}", parts.join("/"))
     }
+}
+
+/// The full path with `~` for the home folder (for the settings page).
+fn tilde_path(path: &std::path::Path) -> String {
+    let home = std::env::var_os("HOME").map(PathBuf::from);
+    match home.as_deref().and_then(|h| path.strip_prefix(h).ok()) {
+        Some(rest) if rest.as_os_str().is_empty() => "~".to_string(),
+        Some(rest) => format!("~/{}", rest.display()),
+        None => path.display().to_string(),
+    }
+}
+
+/// `1904` → `1,904`, for the log and the menu.
+fn thousands(n: usize) -> String {
+    let digits = n.to_string();
+    let mut out = String::with_capacity(digits.len() + digits.len() / 3);
+    for (i, c) in digits.chars().enumerate() {
+        if i > 0 && (digits.len() - i).is_multiple_of(3) {
+            out.push(',');
+        }
+        out.push(c);
+    }
+    out
+}
+
+/// The menu status while no folder is chosen.
+const SAMPLE_STATUS: &str = "Sample graph — Choose Folder… to show yours";
+
+/// The menu status for a folder over the file cap.
+fn capped_status() -> String {
+    format!("Showing the first {} files", thousands(MAX_FILES))
 }
 
 /// Why a display didn't get its wallpaper window.
@@ -239,6 +276,7 @@ fn open_in_background(
         VaultProblem::check(path)?;
     }
     let notes = vault.len();
+    let (kind, reason) = (vault.kind(), vault.reason().to_string());
     let graph = vault.graph();
     let proxy = proxy.clone();
     let watcher = match watch(vault, move |g| {
@@ -250,7 +288,7 @@ fn open_in_background(
             None
         }
     };
-    Ok(Box::new(OpenedVault { graph, notes, scan_ms, watcher }))
+    Ok(Box::new(OpenedVault { graph, notes, scan_ms, kind, reason, watcher }))
 }
 
 fn load_config(path: &std::path::Path) -> Config {
@@ -367,6 +405,13 @@ struct App {
     sent_base: u64,
     shown: Option<Shown>,
     engine: Option<LayoutEngine>,
+    /// Counts layout engines; frames from a replaced one are dropped.
+    engine_epoch: u64,
+    /// The engine reads and saves the layout cache. Off while the sample graph shows,
+    /// so the sample never replaces a real folder's saved positions.
+    engine_cached: bool,
+    /// What the settings page shows about the folder (path, detected kind, cap).
+    folder: FolderInfo,
     _vault_watcher: Option<VaultWatcher>,
     /// Counts vault opens; results and edits from an older open are dropped.
     vault_gen: u64,
@@ -427,18 +472,76 @@ impl App {
             Ok(w) => self._config_watcher = Some(w),
             Err(e) => eprintln!("not watching the config: {e}"),
         }
+        self.use_engine(self.vault_path().is_some());
+        self.open_vault();
+    }
+
+    /// Makes sure the layout engine runs, with the layout cache (`cached`, for a real
+    /// folder) or without it (the sample graph). The cache is one file for whatever
+    /// folder shows, so the sample must neither save its positions there nor hold
+    /// positions that keep a real folder from starting from its cache. Switching
+    /// replaces the engine: rare (first run, or a folder chosen or cleared).
+    fn use_engine(&mut self, cached: bool) {
+        if self.engine.is_some() && self.engine_cached == cached {
+            return;
+        }
+        self.engine_epoch += 1;
+        let epoch = self.engine_epoch;
         let proxy = self.proxy.clone();
         let engine = LayoutEngine::spawn(
             self.cfg.layout_options(),
-            Some(self.args.cache.clone()),
+            cached.then(|| self.args.cache.clone()),
             Duration::from_secs_f64(1.0 / LAYOUT_FPS),
             move |f| {
-                let _ = proxy.send_event(AppEvent::Layout(Box::new(f)));
+                let _ = proxy.send_event(AppEvent::Layout(epoch, Box::new(f)));
             },
         )
         .unwrap_or_else(|e| desktop::fatal("Vault Wallpaper couldn't start.", &format!("could not start the layout thread: {e}")));
+        // Dropping the old engine ends its thread. The new one numbers its runs from 1
+        // again; the picture on screen stays until the new graph's first frame.
         self.engine = Some(engine);
-        self.open_vault();
+        self.engine_cached = cached;
+        self.sent.clear();
+        self.sent_base = 0;
+        self.pending_edits.clear();
+        if let Some(s) = &mut self.shown {
+            s.generation = 0;
+        }
+    }
+
+    /// No folder chosen: the built-in sample graph, with no watcher and no presence.
+    fn show_sample(&mut self) {
+        let graph = sample_graph(vw_core::presence::now_ms());
+        eprintln!(
+            "[{:.0} ms] no folder set: showing the sample graph ({} nodes, {} links); pass --vault or set vaultPath in {}",
+            self.ms(),
+            thousands(graph.nodes.len()),
+            thousands(graph.links.len()),
+            self.args.config.display()
+        );
+        self.use_engine(false);
+        self.send_graph(graph);
+        self.set_vault_status(Some(SAMPLE_STATUS.to_string()));
+        self.folder = FolderInfo::default();
+        self.send_folder();
+    }
+
+    /// The menu's status line about the folder (`None`: the plain app name).
+    fn set_vault_status(&mut self, text: Option<String>) {
+        if text.is_none() && !self.vault_status {
+            return;
+        }
+        self.vault_status = text.is_some();
+        if let Some(m) = &self.menu {
+            m.set_status(text.as_deref().unwrap_or("Vault Wallpaper"));
+        }
+    }
+
+    /// Gives the settings page the folder's path, detected kind and cap state.
+    fn send_folder(&self) {
+        if let Some(s) = &self.settings {
+            s.set_folder(self.folder.clone());
+        }
     }
 
     /// (Re)scans the vault and starts watching it.
@@ -455,8 +558,8 @@ impl App {
         self.vault_retry = None;
         self.vault_gen += 1;
         let Some(path) = self.vault_path() else {
-            eprintln!("no vault set: pass --vault or set vaultPath in {}", self.args.config.display());
             self.vault_access = None;
+            self.show_sample();
             return;
         };
         if bookmark::sandboxed() {
@@ -468,7 +571,7 @@ impl App {
                     let name = path.file_name().map_or_else(|| path.display().to_string(), |n| n.to_string_lossy().into_owned());
                     // Not from a background reload: the user picks it from the menu.
                     // A cancelled panel leaves the same state, so the menu says why the
-                    // wallpaper is empty and Choose Vault… fixes it. A pick reopens the
+                    // wallpaper is empty and Choose Folder… fixes it. A pick reopens the
                     // vault, and the successful open clears the status.
                     if !ask || !self.choose_vault(Some(&path), &format!("Allow Vault Wallpaper to read “{name}”: select it and click Open")) {
                         self.vault_problem(&path, VaultProblem::NoAccess);
@@ -498,16 +601,21 @@ impl App {
         }
         match result {
             Ok(opened) => {
-                let OpenedVault { graph, notes, scan_ms, watcher } = *opened;
-                eprintln!("[{:.0} ms] scanned {notes} notes in {scan_ms:.0} ms", self.ms());
+                let OpenedVault { graph, notes, scan_ms, kind, reason, watcher } = *opened;
+                eprintln!(
+                    "[{:.0} ms] scanned {} files as {kind} ({reason}) in {scan_ms:.0} ms: {} nodes, {} links{}",
+                    self.ms(),
+                    thousands(notes),
+                    thousands(graph.nodes.len()),
+                    thousands(graph.links.len()),
+                    if graph.capped { " (capped)" } else { "" }
+                );
                 self._vault_watcher = watcher;
                 self.vault_retry = None;
-                if self.vault_status {
-                    self.vault_status = false;
-                    if let Some(m) = &self.menu {
-                        m.set_status("Vault Wallpaper");
-                    }
-                }
+                self.set_vault_status(graph.capped.then(capped_status));
+                self.folder = FolderInfo { path: Some(tilde_path(&path)), kind: Some(kind), reason, capped: graph.capped, problem: None };
+                self.send_folder();
+                self.use_engine(true);
                 self.send_graph(graph);
                 let proxy = self.proxy.clone();
                 self.presence = Presence::start(&path, move |s| {
@@ -525,10 +633,9 @@ impl App {
         eprintln!("[{:.0} ms] {status} ({problem:?}); retrying every {} s and on mount", self.ms(), VAULT_RETRY.as_secs());
         self._vault_watcher = None;
         self.presence = Presence::default();
-        if let Some(m) = &self.menu {
-            m.set_status(&status);
-        }
-        self.vault_status = true;
+        self.folder = FolderInfo { path: Some(tilde_path(path)), problem: Some(status.clone()), ..self.folder.clone() };
+        self.send_folder();
+        self.set_vault_status(Some(status));
         self.vault_retry = Some(Instant::now() + VAULT_RETRY);
     }
 
@@ -554,7 +661,19 @@ impl App {
             self.vault_problem(&path, problem);
             return;
         }
-        eprintln!("[{:.0} ms] vault changed: {} notes", self.ms(), graph.nodes.len());
+        eprintln!(
+            "[{:.0} ms] folder changed ({}): {} nodes, {} links{}",
+            self.ms(),
+            self.folder.kind.map_or("?", SourceKind::name),
+            thousands(graph.nodes.len()),
+            thousands(graph.links.len()),
+            if graph.capped { " (capped)" } else { "" }
+        );
+        if graph.capped != self.folder.capped {
+            self.folder.capped = graph.capped;
+            self.send_folder();
+            self.set_vault_status(graph.capped.then(capped_status));
+        }
         // While the Obsidian plugin is live, its save reports start the bursts instead.
         if self.edit_burst.is_some()
             && !self.presence.live(vw_core::presence::now_ms())
@@ -585,7 +704,10 @@ impl App {
         look
     }
 
-    fn on_layout(&mut self, frame: LayoutFrame) {
+    fn on_layout(&mut self, epoch: u64, frame: LayoutFrame) {
+        if epoch != self.engine_epoch {
+            return;
+        }
         // Drop graphs older than the one this frame was computed for.
         let Some(index) = frame.generation.checked_sub(1 + self.sent_base).map(|i| i as usize) else { return };
         if index >= self.sent.len() {
@@ -990,8 +1112,8 @@ impl App {
                 self.update_breathing();
                 self.invalidate_scene();
             }
-            Action::ChooseVault => {
-                self.choose_vault(None, "Choose your Obsidian vault");
+            Action::ChooseFolder => {
+                self.choose_vault(None, "Choose a notes folder or any folder");
             }
             Action::ImportWebConfig => {
                 // A menu-bar app isn't frontmost: bring the dialogs forward.
@@ -1012,6 +1134,7 @@ impl App {
                         Ok(w) => {
                             self.settings = Some(w);
                             self.send_tags();
+                            self.send_folder();
                         }
                         Err(e) => eprintln!("settings window: {e}"),
                     }
@@ -1307,8 +1430,8 @@ impl ApplicationHandler<AppEvent> for App {
         }
         self.start_background();
         if self.vault_path().is_none() {
-            // First run: nothing to show until a vault is picked.
-            self.on_action(Action::ChooseVault, event_loop);
+            // First run: the sample graph shows until a folder is picked.
+            self.on_action(Action::ChooseFolder, event_loop);
         }
     }
 
@@ -1316,7 +1439,7 @@ impl ApplicationHandler<AppEvent> for App {
         match event {
             AppEvent::Graph(generation, g) => self.on_graph(generation, *g),
             AppEvent::Opened { generation, path, result } => self.on_opened(generation, path, result),
-            AppEvent::Layout(f) => self.on_layout(*f),
+            AppEvent::Layout(epoch, f) => self.on_layout(epoch, *f),
             AppEvent::Config(c) => self.on_config(*c),
             AppEvent::Presence(s) => self.on_presence(s.map(|s| *s)),
             AppEvent::Menu(e) => {
@@ -1427,6 +1550,9 @@ fn main() {
         sent_base: 0,
         shown: None,
         engine: None,
+        engine_epoch: 0,
+        engine_cached: false,
+        folder: FolderInfo::default(),
         _vault_watcher: None,
         vault_gen: 0,
         vault_retry: None,
@@ -1499,6 +1625,24 @@ mod tests {
     }
 
     #[test]
+    fn full_paths_for_the_settings_page() {
+        let home = std::env::var("HOME").unwrap();
+        assert_eq!(tilde_path(&PathBuf::from(&home).join("Documents/Notes/Work")), "~/Documents/Notes/Work");
+        assert_eq!(tilde_path(&PathBuf::from(&home)), "~");
+        assert_eq!(tilde_path(std::path::Path::new("/Volumes/USB/Notes")), "/Volumes/USB/Notes");
+    }
+
+    #[test]
+    fn counts_and_cap_status() {
+        assert_eq!(thousands(0), "0");
+        assert_eq!(thousands(812), "812");
+        assert_eq!(thousands(1904), "1,904");
+        assert_eq!(thousands(35_000), "35,000");
+        assert_eq!(thousands(1_234_567), "1,234,567");
+        assert_eq!(capped_status(), "Showing the first 35,000 files");
+    }
+
+    #[test]
     fn vault_problems() {
         let dir = tempfile::tempdir().unwrap();
         assert_eq!(VaultProblem::check(dir.path()), Ok(()));
@@ -1507,7 +1651,8 @@ mod tests {
         let file = dir.path().join("note.md");
         std::fs::write(&file, "").unwrap();
         assert!(matches!(VaultProblem::check(&file), Err(VaultProblem::Unreadable(_))));
-        assert_eq!(VaultProblem::NotFound.status(std::path::Path::new("/Volumes/USB")), "Vault not found: /Volumes/USB");
+        assert_eq!(VaultProblem::NotFound.status(std::path::Path::new("/Volumes/USB")), "Folder not found: /Volumes/USB");
+        assert_eq!(VaultProblem::NoAccess.status(std::path::Path::new("/Volumes/USB")), "Choose Folder… to allow access to /Volumes/USB");
     }
 
     #[test]
