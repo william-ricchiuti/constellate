@@ -70,7 +70,7 @@ Module layout:
 - Settings that only matter to other kinds are hidden in the settings page for Obsidian
   vaults.
 
-Not changed for Obsidian, on purpose, pending William's call: Obsidian's own graph counts
+Not changed for Obsidian, on purpose (William decided 2026-11-19 to keep both as today): Obsidian's own graph counts
 `[text](note.md)` links, and reading an evicted iCloud note triggers a download. Both stay
 as today for `obsidian`; turning either on changes existing users' graphs or behaviour.
 
