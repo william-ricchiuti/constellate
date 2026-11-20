@@ -85,6 +85,9 @@ enum AppEvent {
     System(SysEvent),
     /// The Obsidian plugin's state file changed (`None`: gone or unreadable).
     Presence(Option<Box<vw_core::presence::PresenceState>>),
+    /// First run: time to open the folder picker (the sample graph is on screen, or
+    /// the fallback timer fired).
+    FirstRunPick,
 }
 
 /// A vault scanned and watched off the main thread.
@@ -221,6 +224,9 @@ fn support_dir() -> PathBuf {
     let home = std::env::var_os("HOME").map(PathBuf::from).unwrap_or_default();
     home.join("Library/Application Support/Vault Wallpaper")
 }
+
+/// First run: the longest the folder picker waits for the sample graph to be drawn.
+const FIRST_RUN_PICK_FALLBACK: Duration = Duration::from_secs(5);
 
 const USAGE: &str = "usage: vault-wallpaper [--vault <path>] [--config <file>] [--front] [--cache <file>]";
 
@@ -419,6 +425,11 @@ struct App {
     vault_retry: Option<Instant>,
     /// The menu's status line says something about the vault (cleared once it loads).
     vault_status: bool,
+    /// First run: the folder picker opens once the sample graph has settled and been
+    /// drawn, so the panel sits over a finished picture instead of an empty desktop.
+    first_run_pick: bool,
+    /// The sample has settled; the next drawn scene sends [`AppEvent::FirstRunPick`].
+    pick_when_drawn: bool,
     _config_watcher: Option<ConfigWatcher>,
     started: Instant,
     /// Low Power Mode and the power source, kept current by notifications.
@@ -720,6 +731,9 @@ impl App {
         }
         if frame.settled {
             eprintln!("[{:.0} ms] layout settled", self.ms());
+            if self.first_run_pick {
+                self.pick_when_drawn = true;
+            }
         }
         self.shown = Some(match self.shown.take() {
             // Another frame of the graph on screen: only the positions move.
@@ -966,6 +980,7 @@ impl App {
             // Nothing new, or hidden: a hidden screen stays dirty and draws when seen.
             return;
         }
+        let drew = s.frame_dirty;
         if s.frame_dirty {
             Self::draw_scene(gpu, s, self.shown.as_ref(), self.theme, &self.style, displays::Fit { opts: &self.framing, span }, breathing);
         }
@@ -974,6 +989,10 @@ impl App {
             if let (Some(burst), Some(shown)) = (self.edit_burst, &self.shown) {
                 self.burst_bytes += Self::play_bursts(gpu, s, shown, self.theme, &self.bursts, displays::Fit { opts: &self.framing, span }, burst);
             }
+        }
+        if drew && std::mem::take(&mut self.pick_when_drawn) {
+            // The settled sample is on screen: the picker can open over it now.
+            let _ = self.proxy.send_event(AppEvent::FirstRunPick);
         }
     }
 
@@ -1184,7 +1203,10 @@ impl App {
         if let Some(dir) = start {
             dialog = dialog.set_directory(dir);
         }
-        let Some(dir) = dialog.pick_folder() else { return false };
+        let Some(dir) = dialog.pick_folder() else {
+            eprintln!("[{:.0} ms] folder picker closed without a choice", self.ms());
+            return false;
+        };
         if bookmark::sandboxed()
             && let Err(e) = bookmark::save(&bookmark::file_for(&self.args.config), &dir)
         {
@@ -1430,8 +1452,15 @@ impl ApplicationHandler<AppEvent> for App {
         }
         self.start_background();
         if self.vault_path().is_none() {
-            // First run: the sample graph shows until a folder is picked.
-            self.on_action(Action::ChooseFolder, event_loop);
+            // First run: the sample graph shows until a folder is picked. The picker is
+            // modal and stops the event loop, so it waits until the sample is drawn;
+            // the timer opens it anyway if nothing gets drawn (screen hidden, no GPU).
+            self.first_run_pick = true;
+            let proxy = self.proxy.clone();
+            let _ = std::thread::Builder::new().name("first-run".into()).spawn(move || {
+                std::thread::sleep(FIRST_RUN_PICK_FALLBACK);
+                let _ = proxy.send_event(AppEvent::FirstRunPick);
+            });
         }
     }
 
@@ -1448,6 +1477,13 @@ impl ApplicationHandler<AppEvent> for App {
                 }
             }
             AppEvent::System(e) => self.on_system(e, event_loop),
+            AppEvent::FirstRunPick => {
+                // Once only, and not if a folder was chosen meanwhile (menu, config).
+                if std::mem::take(&mut self.first_run_pick) && self.vault_path().is_none() {
+                    eprintln!("[{:.0} ms] first run: opening the folder picker", self.ms());
+                    self.on_action(Action::ChooseFolder, event_loop);
+                }
+            }
         }
     }
 
@@ -1557,6 +1593,8 @@ fn main() {
         vault_gen: 0,
         vault_retry: None,
         vault_status: false,
+        first_run_pick: false,
+        pick_when_drawn: false,
         _config_watcher: None,
         started: Instant::now(),
         power: PowerState::read(),
