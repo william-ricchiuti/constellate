@@ -1,8 +1,8 @@
-# Vault Wallpaper privacy policy
+# Constellate privacy policy
 
 _Last updated: 8 November 2026_
 
-Vault Wallpaper does not collect, store or share any personal data.
+Constellate does not collect, store or share any personal data.
 
 - **Your notes stay on your Mac.** The app reads the notes folder you choose, on your Mac, to
   draw your wallpaper. It never changes your notes.
@@ -11,7 +11,7 @@ Vault Wallpaper does not collect, store or share any personal data.
 - **Nothing is sent anywhere.** The app has no account, no analytics, no advertising, no
   tracking and makes no network connections. It contains no third-party code that collects
   data.
-- **Exported pictures** are saved where you can see them, in Pictures > Vault Wallpaper.
+- **Exported pictures** are saved where you can see them, in Pictures > Constellate.
 
 This applies to every version of the app: the Mac App Store version, the download from
 GitHub and the Homebrew version. The optional companion Obsidian plugin only writes a small
@@ -22,4 +22,4 @@ If this policy ever changes, the new version will be published here, with a new 
 the app changes.
 
 Questions: open an issue at
-<https://github.com/william-ricchiuti/vault-wallpaper/issues>.
+<https://github.com/william-ricchiuti/constellate/issues>.

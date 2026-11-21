@@ -2,13 +2,13 @@
 # Make a compressed DMG holding the app and an /Applications shortcut.
 #
 # Usage: packaging/make-dmg.sh [app]
-# Output: dist/Vault-Wallpaper-<version>.dmg
+# Output: dist/Constellate-<version>.dmg
 # Needs: hdiutil (built in). If VW_SIGN_IDENTITY is set, the DMG is signed too.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-APP="${1:-$ROOT/dist/Vault Wallpaper.app}"
-VOLNAME="Vault Wallpaper"
+APP="${1:-$ROOT/dist/Constellate.app}"
+VOLNAME="Constellate"
 
 if [[ ! -d "$APP" ]]; then
   echo "error: $APP not found; run packaging/build-app.sh first" >&2
@@ -18,7 +18,7 @@ fi
 # VWVersion is the full version (e.g. 1.0.0-beta.1); older builds only had the short one.
 VERSION="$(/usr/libexec/PlistBuddy -c 'Print :VWVersion' "$APP/Contents/Info.plist" 2>/dev/null ||
   /usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$APP/Contents/Info.plist")"
-DMG="$ROOT/dist/Vault-Wallpaper-$VERSION.dmg"
+DMG="$ROOT/dist/Constellate-$VERSION.dmg"
 STAGE="$(mktemp -d "${TMPDIR:-/tmp}/vw-dmg.XXXXXX")"
 trap 'rm -rf "$STAGE"' EXIT
 

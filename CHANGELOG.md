@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to Vault Wallpaper. The format follows
+All notable changes to Constellate (called Vault Wallpaper up to 1.0.0-beta.1). The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versions follow
 [Semantic Versioning](https://semver.org/).
 
@@ -24,6 +24,13 @@ All notable changes to Vault Wallpaper. The format follows
 
 ### Changed
 
+- The app is now called **Constellate** (`Constellate.app`, `Constellate-<version>.dmg`,
+  Homebrew cask `constellate`). Its bundle ID and update feed are unchanged, so 1.0.0-beta.1
+  updates itself. On first launch it moves `~/Library/Application Support/Vault Wallpaper/`
+  (settings, layout cache, presets) to `~/Library/Application Support/Constellate/`, and
+  `~/Pictures/Vault Wallpaper/` to `~/Pictures/Constellate/`, unless the new folder already
+  exists. The Obsidian companion plugin is shown as Constellate; its id (and folder,
+  `.obsidian/plugins/vault-wallpaper`) stays the same.
 - **Choose Vault…** is now **Choose Folder…**, and the Open panel asks for "a notes folder or
   any folder".
 - Obsidian vaults are read exactly as before; existing configs and layouts are unchanged.
@@ -62,5 +69,5 @@ The first beta of the native macOS app, a rewrite of the web version
 
 - Native versions of most web themes (they draw with Default for now).
 
-[Unreleased]: https://github.com/william-ricchiuti/vault-wallpaper/compare/v1.0.0-beta.1...HEAD
-[1.0.0-beta.1]: https://github.com/william-ricchiuti/vault-wallpaper/releases/tag/v1.0.0-beta.1
+[Unreleased]: https://github.com/william-ricchiuti/constellate/compare/v1.0.0-beta.1...HEAD
+[1.0.0-beta.1]: https://github.com/william-ricchiuti/constellate/releases/tag/v1.0.0-beta.1

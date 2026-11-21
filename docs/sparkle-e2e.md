@@ -28,16 +28,16 @@ Nothing here touches William's Keychain, signing identity or GitHub.
      VW_SPARKLE_PUBLIC_KEY="$(cat public.b64)" packaging/build-app.sh
      VW_SIGN_IDENTITY=- packaging/sign.sh
      packaging/make-dmg.sh
-     ditto "dist/Vault Wallpaper.app" "test$n.app"
+     ditto "dist/Constellate.app" "test$n.app"
    done
    ```
 
 3. **Feed for test2**, signed with the throwaway key, served on localhost:
 
    ```bash
-   mkdir serve && cp dist/Vault-Wallpaper-1.0.0-test2.dmg serve/
+   mkdir serve && cp dist/Constellate-1.0.0-test2.dmg serve/
    VW_SPARKLE_KEY_FILE=private-seed.b64 VW_APPCAST_URL_PREFIX=http://127.0.0.1:8765/ \
-     packaging/make-appcast.sh serve/Vault-Wallpaper-1.0.0-test2.dmg --out serve/appcast.xml
+     packaging/make-appcast.sh serve/Constellate-1.0.0-test2.dmg --out serve/appcast.xml
    python3 -m http.server 8765 --bind 127.0.0.1 --directory serve
    ```
 
@@ -48,7 +48,7 @@ Nothing here touches William's Keychain, signing identity or GitHub.
    points at a tiny vault, and the check triggered at launch:
 
    ```bash
-   open --env HOME=/tmp/vw-home --env VW_CHECK_FOR_UPDATES=1 "install/Vault Wallpaper.app"
+   open --env HOME=/tmp/vw-home --env VW_CHECK_FOR_UPDATES=1 "install/Constellate.app"
    ```
 
    `VW_CHECK_FOR_UPDATES` runs the menu's Check for Updates… action once at launch. Scripts
@@ -67,10 +67,12 @@ Nothing here touches William's Keychain, signing identity or GitHub.
   leaves out `--options runtime` (and `--timestamp`) when `VW_SIGN_IDENTITY=-`. Developer ID
   builds sign the app and the framework with the same Team ID, so the release build keeps
   the hardened runtime.
-- The DMG must hold the app as `Vault Wallpaper.app`. `make-dmg.sh` uses the folder name of
+- The DMG must hold the app as `Constellate.app`. `make-dmg.sh` uses the folder name of
   the app it is given, so stage a copy under that name.
 
 ## Results
+
+These runs were before the rename to Constellate, so the logs say "Vault Wallpaper".
 
 Third run, driven entirely by script (`run3.log`):
 
@@ -132,7 +134,7 @@ Same builds, key and localhost feed as above (`test1` build 9001, `test2` build 
   path-based prefs):
 
   ```bash
-  open -n --stderr app.err "install/Vault Wallpaper.app" --args \
+  open -n --stderr app.err "install/Constellate.app" --args \
     --vault "$PWD/vault" --config "$PWD/home/config.json" --cache "$PWD/home/layout.json"
   ```
 

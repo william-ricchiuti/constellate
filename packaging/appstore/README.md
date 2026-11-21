@@ -1,6 +1,6 @@
 # Mac App Store build
 
-The App Store flavour of Vault Wallpaper: the same app, sandboxed, without the self-updater
+The App Store flavour of Constellate: the same app, sandboxed, without the self-updater
 (the store updates it), signed for the store and wrapped in an installer package. Free.
 The direct build (DMG, Homebrew, Sparkle) is unchanged; see [`../README.md`](../README.md).
 
@@ -13,11 +13,11 @@ The direct build (DMG, Homebrew, Sparkle) is unchanged; see [`../README.md`](../
 | `listing.md` | App Store Connect text: name, subtitle, description, keywords, privacy answers, review notes |
 | `screenshots/` | 2880×1800 JPEG screenshots rendered from a real vault |
 | `xcode-build-phase.sh` | the Run Script phase of the Xcode project: cargo build, icon, version |
-| [`../../xcode/`](../../xcode) | `VaultWallpaper.xcodeproj`, the Xcode way to build, archive and upload (below) |
+| [`../../xcode/`](../../xcode) | `Constellate.xcodeproj`, the Xcode way to build, archive and upload (below) |
 
 There are two ways to make the App Store build. They produce the same app.
 
-- **Xcode (recommended):** open `xcode/VaultWallpaper.xcodeproj`, Archive, Distribute.
+- **Xcode (recommended):** open `xcode/Constellate.xcodeproj`, Archive, Distribute.
   Xcode makes the certificates and profiles itself and uploads. Steps in
   [Uploading with Xcode](#uploading-with-xcode-click-by-click).
 - **Command line (fallback):** `build.sh`, then Transporter. You make the certificates and the
@@ -25,11 +25,11 @@ There are two ways to make the App Store build. They produce the same app.
 
 ## The Xcode project
 
-`xcode/VaultWallpaper.xcodeproj` is a macOS App target with no source files. Its one Run
+`xcode/Constellate.xcodeproj` is a macOS App target with no source files. Its one Run
 Script phase, `xcode-build-phase.sh`, runs
-`cargo build --release --no-default-features -p vault-wallpaper` for each architecture Xcode
+`cargo build --release --no-default-features -p constellate` for each architecture Xcode
 builds (Apple silicon and Intel for Archive), joins them with `lipo` and puts the result in
-the bundle as `Contents/MacOS/vault-wallpaper`. It also makes `AppIcon.icns` and writes the
+the bundle as `Contents/MacOS/constellate`. It also makes `AppIcon.icns` and writes the
 version from `crates/app/Cargo.toml` and the build number (the commit count, from
 `packaging/build-number.sh`) into the built `Info.plist`. Unlike `build.sh` it builds with
 line tables (in its own cargo folder, `target/xcode-appstore`) and makes a dSYM with
@@ -53,7 +53,7 @@ need XcodeGen to change the project (`cd xcode && xcodegen generate`). Command-l
 Development certificate; only the export needs the App Store profile Xcode makes in step 5):
 
 ```bash
-xcodebuild -project xcode/VaultWallpaper.xcodeproj -scheme VaultWallpaper archive -archivePath /tmp/VW.xcarchive CODE_SIGNING_ALLOWED=NO
+xcodebuild -project xcode/Constellate.xcodeproj -scheme Constellate archive -archivePath /tmp/VW.xcarchive CODE_SIGNING_ALLOWED=NO
 ```
 
 ## Uploading with Xcode, click by click
@@ -63,8 +63,8 @@ are once; 4–6 are every release.
 
 ### 1. Open the project
 
-1. In Terminal: `cd ~/dev/vault-wallpaper && git checkout main && git pull`.
-2. `open xcode/VaultWallpaper.xcodeproj` (or double-click it in Finder).
+1. In Terminal: `cd ~/dev/constellate && git checkout main && git pull`.
+2. `open xcode/Constellate.xcodeproj` (or double-click it in Finder).
 3. If Xcode asks whether to trust or open the project, say yes: its build script runs
    `cargo` from this repository.
 
@@ -72,8 +72,8 @@ are once; 4–6 are every release.
 
 1. **Xcode > Settings… > Accounts.** Your Apple ID should be listed, with the team
    "William Ricchiuti". If not: **+** > Apple ID > sign in.
-2. Close Settings. In the left sidebar click the blue **VaultWallpaper** project icon, then
-   under TARGETS click **VaultWallpaper**, then the **Signing & Capabilities** tab.
+2. Close Settings. In the left sidebar click the blue **Constellate** project icon, then
+   under TARGETS click **Constellate**, then the **Signing & Capabilities** tab.
 3. Check: **Automatically manage signing** is ticked, **Team** is "William Ricchiuti",
    **Bundle Identifier** is `com.williamricchiuti.vaultwallpaper`. App Sandbox and Hardened
    Runtime are listed below with the entitlements from `entitlements.plist`.
@@ -99,7 +99,7 @@ way you did for Developer ID:
    Check with `security find-identity -v`.
 4. Identifiers > **+** > App IDs > App > macOS, explicit `com.williamricchiuti.vaultwallpaper`
    (skip if Xcode already registered it). Profiles > **+** > **Mac App Store Connect** > that
-   App ID > your Apple Distribution certificate > name "Vault Wallpaper Mac App Store" >
+   App ID > your Apple Distribution certificate > name "Constellate Mac App Store" >
    Download, then double-click the profile.
 5. Back in Xcode, keep automatic signing; in step 5 below choose **Manually manage signing**
    and pick that certificate and profile. (Or skip Xcode: [What William does](#what-william-does)
@@ -108,14 +108,14 @@ way you did for Developer ID:
 ### 3. Make the app record in App Store Connect
 
 1. appstoreconnect.apple.com > **Apps** > **+** (top left) > **New App**.
-2. Platform **macOS**; Name **Vault Wallpaper** (if taken, see `listing.md`); Primary language
+2. Platform **macOS**; Name **Constellate** (if taken, see `listing.md`); Primary language
    **English (U.S.)**; Bundle ID **com.williamricchiuti.vaultwallpaper** (it appears in the
    list once Xcode or you registered it); SKU **vaultwallpaper-mac**; User Access **Full
    Access**. Click **Create**.
 
 ### 4. Archive
 
-1. At the top of the Xcode window, the scheme reads **VaultWallpaper** and the destination
+1. At the top of the Xcode window, the scheme reads **Constellate** and the destination
    **My Mac** (or Any Mac).
 2. **Product > Archive.** The first archive takes several minutes (cargo builds the app for
    Apple silicon and Intel; watch the progress bar). Later ones are quicker.
@@ -143,7 +143,7 @@ Apple's side, so if it passes, upload. To look yourself: **Distribute App** > **
 **App Store Connect** > **Export**, save it, then
 
 ```bash
-pkgutil --payload-files ~/Desktop/VaultWallpaper*/*.pkg | grep '/\._'
+pkgutil --payload-files ~/Desktop/Constellate*/*.pkg | grep '/\._'
 ```
 
 If Validate, the upload or review complains about `._` files or an invalid bundle or
@@ -152,14 +152,14 @@ without them.
 
 ### 6. Fill in the listing and submit
 
-1. App Store Connect > Vault Wallpaper > **macOS App** > **1.0 Prepare for Submission**.
+1. App Store Connect > Constellate > **macOS App** > **1.0 Prepare for Submission**.
 2. Paste from `listing.md`: promotional text, description, keywords, support URL, marketing
    URL. Drag the five `screenshots/*.jpg` into the screenshots box, in their numbered order.
 3. **Build** > **+** > pick the build you uploaded.
 4. Copyright `2026 William Ricchiuti`. **App Review Information**: sign-in not required, your
    contact details, and the review notes from `listing.md`.
 5. Left sidebar **App Information**: category Productivity, secondary Utilities; privacy
-   policy URL `https://github.com/william-ricchiuti/vault-wallpaper/blob/main/PRIVACY.md`.
+   policy URL `https://github.com/william-ricchiuti/constellate/blob/main/PRIVACY.md`.
 6. **App Privacy** > Get Started > "No, we do not collect data from this app" > **Publish**.
 7. **Pricing and Availability** > Free. **Age Rating** > None for everything (4+).
 8. Back on the 1.0 page: **Version Release** > **Manually release this version**. Then
@@ -180,8 +180,8 @@ The code is the same in both builds. It checks at run time whether it is sandbox
   once. Code: `crates/app/src/bookmark.rs`, `open_vault_or_ask` and `choose_vault` in `main.rs`.
 - **Paths.** Everything is under `$HOME`, which the sandbox points at the container, so config,
   layout cache, custom presets and the bookmark live in
-  `~/Library/Containers/com.williamricchiuti.vaultwallpaper/Data/Library/Application Support/Vault Wallpaper/`.
-  Export PNG writes `~/Pictures/Vault Wallpaper/` through the container's `Pictures` link
+  `~/Library/Containers/com.williamricchiuti.vaultwallpaper/Data/Library/Application Support/Constellate/`.
+  Export PNG writes `~/Pictures/Constellate/` through the container's `Pictures` link
   (pictures entitlement) and resolves it so Finder shows the real folder.
 - **Import Web Version Settings…** reads the file picked in the open panel. The sandbox lets the
   app see, but not read, the `custom-presets.json` next to it, so it asks for that file with a
@@ -193,7 +193,7 @@ The code is the same in both builds. It checks at run time whether it is sandbox
 
 Moving from the direct build: the App Store build can't read the direct build's settings.
 Import Web Version Settings… accepts the native `config.json` too (same format): press
-Cmd+Shift+G in the panel and go to `~/Library/Application Support/Vault Wallpaper/`.
+Cmd+Shift+G in the panel and go to `~/Library/Application Support/Constellate/`.
 
 ## Entitlements
 
@@ -202,7 +202,7 @@ Cmd+Shift+G in the panel and go to `~/Library/Application Support/Vault Wallpape
 | `com.apple.security.app-sandbox` | required for the App Store |
 | `com.apple.security.files.user-selected.read-only` | read the picked vault and the picked web config; never writes into the vault |
 | `com.apple.security.files.bookmarks.app-scope` | keep reading the vault after a relaunch |
-| `com.apple.security.assets.pictures.read-write` | Export PNG to `~/Pictures/Vault Wallpaper`, as in the direct build, with no save panel |
+| `com.apple.security.assets.pictures.read-write` | Export PNG to `~/Pictures/Constellate`, as in the direct build, with no save panel |
 | `com.apple.security.network.client` | the settings window is a WKWebView, and in the sandbox WebKit loads nothing without it, not even the page served in-process through `vw://` (tested 2026-11-08: blank without it, works with it). The app makes no connections |
 
 ## Encryption: `ITSAppUsesNonExemptEncryption` = NO
@@ -218,7 +218,7 @@ networking with encryption (HTTPS through the OS still counts as exempt), revisi
 
 ```bash
 packaging/appstore/build.sh --dry-run
-codesign -d --entitlements :- "dist/appstore/Vault Wallpaper.app"
+codesign -d --entitlements :- "dist/appstore/Constellate.app"
 packaging/appstore/sandbox-check.sh
 ```
 
@@ -243,12 +243,12 @@ App Store Connect, and the last steps publish.
    is a different one and can't be used here.)
 2. **App ID** (developer.apple.com > Certificates, IDs & Profiles > Identifiers > +): App IDs >
    App, platform macOS, explicit bundle ID `com.williamricchiuti.vaultwallpaper`, description
-   "Vault Wallpaper". No capabilities need ticking (App Sandbox isn't one).
+   "Constellate". No capabilities need ticking (App Sandbox isn't one).
 3. **Provisioning profile** (Profiles > +): Distribution > **Mac App Store Connect**, pick that
-   App ID and your Apple Distribution certificate, name it "Vault Wallpaper Mac App Store",
+   App ID and your Apple Distribution certificate, name it "Constellate Mac App Store",
    download the `.provisionprofile`.
 4. **App record** (App Store Connect > Apps > + > New App): platform macOS, name
-   "Vault Wallpaper" (if taken, see `listing.md`), primary language English (U.S.), bundle ID
+   "Constellate" (if taken, see `listing.md`), primary language English (U.S.), bundle ID
    `com.williamricchiuti.vaultwallpaper`, SKU `vaultwallpaper-mac`, full access.
 5. **Agreements**: Business > the Free Apps agreement is active by default; nothing to sign for
    a free app beyond the Apple Developer Program License Agreement.
@@ -265,23 +265,23 @@ App Store Connect, and the last steps publish.
    export VW_TEAM_ID=ABCDE12345
    export VW_APP_IDENTITY="Apple Distribution: William Ricchiuti (ABCDE12345)"
    export VW_INSTALLER_IDENTITY="3rd Party Mac Developer Installer: William Ricchiuti (ABCDE12345)"
-   export VW_PROVISIONING_PROFILE="$HOME/Downloads/Vault_Wallpaper_Mac_App_Store.provisionprofile"
+   export VW_PROVISIONING_PROFILE="$HOME/Downloads/Constellate_Mac_App_Store.provisionprofile"
    packaging/appstore/build.sh
    ```
 
-   Output: `dist/appstore/Vault-Wallpaper-<version>-<build>.pkg`. Any shell works. macOS tags
+   Output: `dist/appstore/Constellate-<version>-<build>.pkg`. Any shell works. macOS tags
    every file a build writes with `com.apple.provenance`, and `productbuild` would turn each
    tag into a `._` file in the package, so the script repacks the payload without them and
    stops if any are left.
-2. Optional check that it installs and runs signed: `sudo installer -store -pkg dist/appstore/Vault-Wallpaper-*.pkg -target /`
+2. Optional check that it installs and runs signed: `sudo installer -store -pkg dist/appstore/Constellate-*.pkg -target /`
    (then delete the installed copy).
 3. **Upload** with either
    - **Transporter** (free on the Mac App Store): sign in, drag in the `.pkg`, Deliver; or
    - the command line:
 
      ```bash
-     xcrun altool --validate-app -f dist/appstore/Vault-Wallpaper-*.pkg -t macos --apiKey <KEYID> --apiIssuer <ISSUER>
-     xcrun altool --upload-app   -f dist/appstore/Vault-Wallpaper-*.pkg -t macos --apiKey <KEYID> --apiIssuer <ISSUER>
+     xcrun altool --validate-app -f dist/appstore/Constellate-*.pkg -t macos --apiKey <KEYID> --apiIssuer <ISSUER>
+     xcrun altool --upload-app   -f dist/appstore/Constellate-*.pkg -t macos --apiKey <KEYID> --apiIssuer <ISSUER>
      ```
 
    App Store builds are **not** notarized: `notarytool` is only for the DMG. Apple processes the
@@ -318,7 +318,7 @@ App Store Connect, and the last steps publish.
     private SkyLight imports `_CGSMainConnectionID` and `_CGSSetWindowBackgroundBlurRadius`
     came from winit's unused blur support and are patched out (`vendor/winit/PATCHES.md`).
     `_CGShieldingWindowLevel` is public CoreGraphics. To re-check:
-    `nm -u "dist/appstore/Vault Wallpaper.app/Contents/MacOS/vault-wallpaper" | grep -E "CGS|_SL"`
+    `nm -u "dist/appstore/Constellate.app/Contents/MacOS/constellate" | grep -E "CGS|_SL"`
     must print only `_CGShieldingWindowLevel`.
   - *Objective-C selectors:* the binary has no `__objc_selrefs`/`__objc_methname` sections
     (objc2 registers selectors at runtime), so there are no selector references for the
@@ -341,5 +341,5 @@ App Store Connect, and the last steps publish.
     must print nothing. Still set through KVC, all public `WKPreferences` properties:
     `tabFocusesLinks` and `inactiveSchedulingPolicy` (the latter only if the app asks for a
     background-throttling policy, which it doesn't).
-- **Name:** "Vault Wallpaper" may be taken on the store; fallbacks are in `listing.md`. Don't
+- **Name:** "Constellate" may be taken on the store; fallbacks are in `listing.md`. Don't
   put "Obsidian" in the name or keywords (someone else's trademark, guideline 5.2.1).

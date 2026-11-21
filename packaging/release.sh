@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# One-command release of Vault Wallpaper: the direct build (DMG + Sparkle appcast + Homebrew
+# One-command release of Constellate: the direct build (DMG + Sparkle appcast + Homebrew
 # cask values) and, if its script exists, the Mac App Store package.
 #
 # Usage: packaging/release.sh <version> [--dry-run] [--no-appstore]
@@ -31,7 +31,7 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 PKG="$ROOT/packaging"
 DIST="$ROOT/dist"
-REPO="william-ricchiuti/vault-wallpaper"
+REPO="william-ricchiuti/constellate"
 APP_TOML="crates/app/Cargo.toml"
 
 usage() { sed -n '2,27p' "$0" | sed 's/^# \{0,1\}//'; }
@@ -60,7 +60,7 @@ if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
   exit 64
 fi
 TAG="v$VERSION"
-DMG="$DIST/Vault-Wallpaper-$VERSION.dmg"
+DMG="$DIST/Constellate-$VERSION.dmg"
 APPCAST="$DIST/appcast.xml"
 PRERELEASE=""
 [[ "$VERSION" == *-* ]] && PRERELEASE="--prerelease"
@@ -82,11 +82,11 @@ if ((BUMP_ONLY && DRY_RUN)); then
   die "--bump-only and --dry-run don't go together"
 fi
 if ((BUMP_ONLY)); then
-  echo "Vault Wallpaper $VERSION: version bump only"
+  echo "Constellate $VERSION: version bump only"
 elif ((DRY_RUN)); then
-  echo "Vault Wallpaper $VERSION: DRY RUN (no signing, notarizing or uploading)"
+  echo "Constellate $VERSION: DRY RUN (no signing, notarizing or uploading)"
 else
-  echo "Vault Wallpaper $VERSION: release build"
+  echo "Constellate $VERSION: release build"
 fi
 
 # ---------------------------------------------------------------------------------------
@@ -106,6 +106,15 @@ if ((!BUMP_ONLY)); then
   done
   if [[ "$SPARKLE_FEED_URL" != "$FEED_URL" ]]; then
     check_fail "SPARKLE_FEED_URL in packaging/sparkle.env is $SPARKLE_FEED_URL, but the appcast is published at $FEED_URL"
+  fi
+  # The repo was william-ricchiuti/vault-wallpaper up to 1.0.0-beta.1. GitHub redirects the old
+  # URLs (beta.1's SUFeedURL among them) once it's renamed, but new builds, the appcast and the
+  # cask point at $REPO directly, so it has to exist under that name (no redirect followed).
+  REPO_STATUS="$(curl -s -o /dev/null -w '%{http_code}' "https://api.github.com/repos/$REPO" || true)"
+  if [[ "$REPO_STATUS" == 200 ]]; then
+    echo "    GitHub repo $REPO exists"
+  else
+    check_fail "https://api.github.com/repos/$REPO answered $REPO_STATUS, not 200: rename the GitHub repo to $REPO first (Settings > General > Repository name)"
   fi
   if grep -qF "## [$VERSION]" CHANGELOG.md; then
     echo "    CHANGELOG.md has a [$VERSION] section"
@@ -194,7 +203,7 @@ if ((BUMP_ONLY)); then
 
 Next:
    git commit -am "chore(release): $VERSION"
-   git tag -a $TAG -m "Vault Wallpaper $VERSION"
+   git tag -a $TAG -m "Constellate $VERSION"
    git push origin HEAD $TAG      # starts .github/workflows/release.yml
 EOF
   exit 0
@@ -215,7 +224,7 @@ else
 fi
 step "build the direct app (features: ${FEATURES:-default})"
 VW_FEATURES="$FEATURES" "$PKG/build-app.sh"
-APP="$DIST/Vault Wallpaper.app"
+APP="$DIST/Constellate.app"
 
 # ---------------------------------------------------------------------------------------
 # 3. Sign
@@ -276,13 +285,13 @@ write_test_appcast() {
   local short build url
   short="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$APP/Contents/Info.plist")"
   build="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$APP/Contents/Info.plist")"
-  url="https://github.com/$REPO/releases/download/$TAG/Vault-Wallpaper-$VERSION.dmg"
+  url="https://github.com/$REPO/releases/download/$TAG/Constellate-$VERSION.dmg"
   cat >"$APPCAST" <<XML
 <?xml version="1.0" encoding="utf-8"?>
 <!-- TEST APPCAST from a release.sh dry run: unsigned, do not publish. -->
 <rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle">
   <channel>
-    <title>Vault Wallpaper</title>
+    <title>Constellate</title>
     <item>
       <title>Version $VERSION</title>
       <pubDate>$(LC_ALL=C date -u '+%a, %d %b %Y %H:%M:%S +0000')</pubDate>
@@ -381,7 +390,7 @@ fi
 # ---------------------------------------------------------------------------------------
 # The App Store session owns packaging/appstore/. Interface (packaging/README.md):
 #   packaging/appstore/build.sh [--dry-run]
-#   -> dist/appstore/Vault-Wallpaper-<short>-<build>.pkg, its path on the last stdout line.
+#   -> dist/appstore/Constellate-<short>-<build>.pkg, its path on the last stdout line.
 #   Exit 2 means "not set up" (no VW_TEAM_ID / identities / profile): skipped, not a failure.
 APPSTORE_SCRIPT="$PKG/appstore/build.sh"
 APPSTORE_PKG=""
@@ -419,7 +428,7 @@ NOTES="$DIST/release-notes-$VERSION.md"
 # This version's section, up to the next "## [" heading or the trailing link definitions
 # ("[1.0.0]: https://..."), which mean nothing in a GitHub Release body.
 awk -v v="$VERSION" '$0 ~ "^## \\[" v "\\]" {on=1; next} /^## \[/ || /^\[[^]]+\]: / {on=0} on' CHANGELOG.md >"$NOTES"
-[[ -s "$NOTES" ]] || echo "Vault Wallpaper $VERSION" >"$NOTES"
+[[ -s "$NOTES" ]] || echo "Constellate $VERSION" >"$NOTES"
 
 cat <<EOF
 
@@ -463,7 +472,7 @@ cat <<EOF
      "$DMG" \\
      --repo $REPO \\
      --target "\$(git rev-parse HEAD)" \\
-     --title "Vault Wallpaper $VERSION" \\
+     --title "Constellate $VERSION" \\
      --notes-file "$NOTES"${PRERELEASE:+ \\
      $PRERELEASE}
 
@@ -476,7 +485,7 @@ cat <<EOF
    gh release view $SPARKLE_APPCAST_TAG --repo $REPO >/dev/null 2>&1 ||
      gh release create $SPARKLE_APPCAST_TAG --repo $REPO --prerelease --latest=false \\
        --target "\$(git rev-parse HEAD)" --title "Sparkle update feed" \\
-       --notes "appcast.xml for Vault Wallpaper's automatic updates. Not a release; don't delete it."
+       --notes "appcast.xml for Constellate's automatic updates. Not a release; don't delete it."
    gh release upload $SPARKLE_APPCAST_TAG "$APPCAST" --repo $REPO --clobber
    curl -fsSL $FEED_URL | grep -c '<item'   # the feed is live
 

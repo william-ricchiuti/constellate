@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Code-sign "dist/Vault Wallpaper.app" with a Developer ID and the hardened runtime.
+# Code-sign "dist/Constellate.app" with a Developer ID and the hardened runtime.
 #
 # Usage: VW_SIGN_IDENTITY="Developer ID Application: Name (TEAMID)" packaging/sign.sh [app]
 # Needs: a "Developer ID Application" certificate in your login keychain.
@@ -9,7 +9,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-APP="${1:-$ROOT/dist/Vault Wallpaper.app}"
+APP="${1:-$ROOT/dist/Constellate.app}"
 ENTITLEMENTS="$ROOT/packaging/entitlements.plist"
 
 if [[ -z "${VW_SIGN_IDENTITY:-}" ]]; then

@@ -1,13 +1,13 @@
 # App Store listing draft
 
-Paste into App Store Connect > Vault Wallpaper > macOS App > 1.0. Limits are Apple's; counts
+Paste into App Store Connect > Constellate > macOS App > 1.0. Limits are Apple's; counts
 are for this text. Everything marked **TODO** needs William.
 
 ## App information
 
 | Field | Value |
 |---|---|
-| Name (30) | **Vault Wallpaper** (15). If taken: "Vault Wallpaper: Note Graph" (27) or "Vault Graph Wallpaper" (21) |
+| Name (30) | William's pick, **Constellate: Note Graph Wallpaper**, is 33 characters: 3 over the limit. Under 30: "Constellate: Graph Wallpaper" (28), "Constellate: Note Graph" (23), or just "Constellate" (11) with the subtitle carrying the rest. **TODO** William: choose |
 | Subtitle (30) | **Notes or any folder as a graph** (30). Fallback, notes only: "Your notes, as a living graph" (29) |
 | Bundle ID | `com.williamricchiuti.vaultwallpaper` |
 | SKU | `vaultwallpaper-mac` |
@@ -16,9 +16,9 @@ are for this text. Everything marked **TODO** needs William.
 | Price | Free |
 | Age rating | 4+ (every question answered None/No) |
 | Copyright | 2026 William Ricchiuti |
-| Support URL | `https://github.com/william-ricchiuti/vault-wallpaper/issues` |
-| Marketing URL (optional) | `https://github.com/william-ricchiuti/vault-wallpaper` |
-| Privacy policy URL (required) | `https://github.com/william-ricchiuti/vault-wallpaper/blob/main/PRIVACY.md` (the text below, in [`PRIVACY.md`](../../PRIVACY.md)) |
+| Support URL | `https://github.com/william-ricchiuti/constellate/issues` |
+| Marketing URL (optional) | `https://github.com/william-ricchiuti/constellate` |
+| Privacy policy URL (required) | `https://github.com/william-ricchiuti/constellate/blob/main/PRIVACY.md` (the text below, in [`PRIVACY.md`](../../PRIVACY.md)) |
 
 Don't use "Obsidian" (or Logseq, Dendron, Foam, Zettlr, org-roam) in the name, subtitle or
 keywords: they're other people's trademarks (guideline 5.2.1; 2.3.7 for keywords). Saying the
@@ -33,7 +33,7 @@ app works with their folders in the description is fine.
 
 ## Description (4000)
 
-> Vault Wallpaper draws the graph of your notes, or of any folder, behind your desktop icons.
+> Constellate draws the graph of your notes, or of any folder, behind your desktop icons.
 > Every note is a point, every link between notes is a line, and the picture updates as you
 > write: save a note and the wallpaper follows.
 >
@@ -81,10 +81,10 @@ app works with their folders in the description is fine.
 >   you save.
 > • Start at Login, if you like.
 >
-> Vault Wallpaper is free and has no in-app purchases.
+> Constellate is free and has no in-app purchases.
 >
 > Obsidian is a trademark of Dynalist Inc. Logseq, Dendron, Foam, Zettlr and org-roam are
-> the names of their respective projects. Vault Wallpaper is an independent app and is not
+> the names of their respective projects. Constellate is an independent app and is not
 > affiliated with or endorsed by any of them.
 
 (About 2,700 characters.) **Check before submitting:** that the Obsidian plugin is released
@@ -152,15 +152,15 @@ This matches `PrivacyInfo.xcprivacy` (no tracking, no collected data types).
 
 ## Privacy policy text
 
-> **Vault Wallpaper privacy policy**
+> **Constellate privacy policy**
 >
-> Vault Wallpaper does not collect, store or share any personal data. It reads the notes
+> Constellate does not collect, store or share any personal data. It reads the notes
 > folder you choose, on your Mac, to draw your wallpaper, and keeps its settings and a cache of
 > the graph's layout on your Mac. Nothing is sent anywhere: the app has no account, no
 > analytics, no advertising and makes no network connections. Exported pictures are saved
-> where you can see them, in Pictures > Vault Wallpaper.
+> where you can see them, in Pictures > Constellate.
 >
-> Questions: open an issue at https://github.com/william-ricchiuti/vault-wallpaper/issues.
+> Questions: open an issue at https://github.com/william-ricchiuti/constellate/issues.
 
 The full policy is [`PRIVACY.md`](../../PRIVACY.md); keep the two in step.
 
@@ -171,7 +171,7 @@ The full policy is [`PRIVACY.md`](../../PRIVACY.md); keep the two in step.
 - Attachment (optional): a short screen recording of the first run helps; **TODO** if wanted.
 - Notes (4000):
 
-> Vault Wallpaper turns a folder of notes (for example an Obsidian vault), or any folder, into
+> Constellate turns a folder of notes (for example an Obsidian vault), or any folder, into
 > the desktop wallpaper: each note or file is a dot and each link a line, drawn with Metal.
 >
 > HOW TO TEST
@@ -182,7 +182,7 @@ The full policy is [`PRIVACY.md`](../../PRIVACY.md); keep the two in step.
 >    every file becomes a dot linked to its folder. A small sample vault: **TODO link to a zip
 >    of a demo vault**. The graph appears behind the desktop icons within a few seconds.
 > 3. Menu bar icon > Settings… changes the look (try the theme tiles); the wallpaper updates
->    live. Export PNG saves a picture to Pictures > Vault Wallpaper.
+>    live. Export PNG saves a picture to Pictures > Constellate.
 > 4. Edit and save a note in the folder: the wallpaper updates.
 >
 > WHY IT DRAWS BEHIND THE DESKTOP
@@ -195,7 +195,7 @@ The full policy is [`PRIVACY.md`](../../PRIVACY.md); keep the two in step.
 > • User-selected files, read-only: to read the notes folder the user picks (and, optionally,
 >   an old settings file to import). The app never writes to it.
 > • App-scoped bookmarks: to keep access to that folder after a restart.
-> • Pictures folder: Export PNG saves into Pictures > Vault Wallpaper.
+> • Pictures folder: Export PNG saves into Pictures > Constellate.
 > • Outgoing network connections: required by WKWebView in the sandbox to display the Settings
 >   window, whose page is bundled in the app and served in-process. The app itself makes no
 >   network connections.

@@ -206,7 +206,7 @@ Done 2026-11-06 in `crates/core` (`vw_core::layout`).
   crashes, and idle numbers beat the Phase 0 baseline clearly.
 
 #### Phase 3 results
-Done 2026-11-06: `crates/render` (`vw-render`) and the app, `crates/app` (`vault-wallpaper`).
+Done 2026-11-06: `crates/render` (`vw-render`) and the app, `crates/app` (`constellate`).
 - The renderer draws the background, links as anti-aliased quads and notes as anti-aliased
   discs, all instanced. Framing is a port of the web version's (centre, fill, left, right,
   none, zoom, offsets, safe area, small-vault scale cap). It also renders off-screen to PNG,
@@ -418,7 +418,7 @@ with a copy), and so does a text change that rasterises new glyphs (glyphon's
 #### Start-up and large vaults (2026-11-08, branch `claude/fix-robustness-bdc555`)
 Pre-release audit items S7, S8 and S11.
 - **No GPU, no window:** creating the window, its surface, the GPU, the event loop, and the
-  run itself no longer panic. With nothing to draw on, an `NSAlert` says "Vault Wallpaper
+  run itself no longer panic. With nothing to draw on, an `NSAlert` says "Constellate
   needs a Mac with Metal graphics." and the app exits 1 (`VW_FAIL_GPU=1` forces that path;
   `VW_NO_ALERT=1` skips the alert). A display added later that fails is logged and the app
   keeps the screens it has. `--config` / `--cache` / `--vault` without a value is a usage
@@ -535,7 +535,7 @@ From 2026-11-06 William asked for the remaining phases to run without stopping f
 remaining open choices take the recommended default below. Anything that publishes or uses his
 credentials (notarization, making the repo public, releases) still waits for him.
 
-1. **Repo.** ✅ Decided 2026-11-05: separate repos. This repo (`vault-wallpaper`) is the native app;
+1. **Repo.** ✅ Decided 2026-11-05: separate repos. This repo (`constellate`) is the native app;
    `obsidian-live-wallpaper` stays the web version and keeps getting targeted improvements.
 2. **Settings UI.** ✅ Decided 2026-11-05: reuse `settings.html` in an on-demand web view (option A), its
    `/api/*` calls answered inside the app. Can be swapped for SwiftUI later.
@@ -547,6 +547,9 @@ credentials (notarization, making the repo public, releases) still waits for him
    Intel). README says "tested on macOS 26–27".
 5. **Name and bundle id.** ✅ Default taken 2026-11-06: "Vault Wallpaper", bundle id
    `com.williamricchiuti.vaultwallpaper`. No "Obsidian" in the app name.
+   Renamed 2026-11-20 to **Constellate** (after 1.0.0-beta.1). The bundle ID stays, so Sparkle
+   updates, login items and the App Store record carry over; the old Application Support and
+   Pictures folders are moved on first launch.
 6. **Distribution.** ✅ Default taken 2026-11-06: signed and notarized DMG on GitHub Releases plus a
    Homebrew cask in William's own tap. Mac App Store later, if ever.
    Updated 2026-11-08: the app is free on all three: the DMG with Sparkle, Homebrew, and the

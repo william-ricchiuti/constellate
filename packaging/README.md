@@ -1,14 +1,14 @@
 # Packaging
 
-Scripts that turn the `vault-wallpaper` crate into a signed, notarized DMG. Run them from
+Scripts that turn the `constellate` crate into a signed, notarized DMG. Run them from
 anywhere; they find the repository root themselves. Output goes to `dist/` (git-ignored).
 
 | Step | Script | Needs | Output |
 |---|---|---|---|
-| 1 | `build-app.sh` | rustup, Xcode command line tools | `dist/Vault Wallpaper.app` (universal, unsigned) |
+| 1 | `build-app.sh` | rustup, Xcode command line tools | `dist/Constellate.app` (universal, unsigned) |
 | 2 | `sign.sh` | `VW_SIGN_IDENTITY`, a Developer ID Application certificate | the app, signed with the hardened runtime |
 | 3 | `notarize.sh <app>` | `VW_NOTARY_PROFILE` (one-time setup below), network | the app, notarized and stapled |
-| 4 | `make-dmg.sh` | nothing extra (signs the DMG too if `VW_SIGN_IDENTITY` is set) | `dist/Vault-Wallpaper-<version>.dmg` |
+| 4 | `make-dmg.sh` | nothing extra (signs the DMG too if `VW_SIGN_IDENTITY` is set) | `dist/Constellate-<version>.dmg` |
 | 5 | `notarize.sh <dmg>` | as step 3 | the DMG, notarized and stapled |
 | 6 | `make-appcast.sh` | the Sparkle private key (Keychain, or `VW_SPARKLE_KEY_FILE`) | `dist/appcast/appcast.xml` |
 
@@ -17,7 +17,7 @@ export VW_SIGN_IDENTITY="Developer ID Application: Your Name (TEAMID)"
 export VW_NOTARY_PROFILE=vault-wallpaper-notary
 packaging/build-app.sh
 packaging/sign.sh
-packaging/notarize.sh "dist/Vault Wallpaper.app"
+packaging/notarize.sh "dist/Constellate.app"
 packaging/make-dmg.sh
 packaging/notarize.sh
 ```
@@ -38,7 +38,7 @@ Builds the app for `aarch64-apple-darwin` and `x86_64-apple-darwin` (it runs
 bundle with its `Info.plist`:
 
 - `CFBundleIdentifier` `com.williamricchiuti.vaultwallpaper`
-- `CFBundleName` / `CFBundleDisplayName` "Vault Wallpaper"
+- `CFBundleName` / `CFBundleDisplayName` "Constellate"
 - `CFBundleShortVersionString`: the numeric part of the version in `crates/app/Cargo.toml`
   (`1.0.0-beta.1` -> `1.0.0`); `CFBundleVersion`: a build number that only goes up
   (`VW_BUILD_NUMBER`, else the commit count); `VWVersion`: the full version, used for the DMG name
@@ -99,7 +99,7 @@ the first accepted licence in that list is the one reproduced.
 | Mac App Store | no `updater` feature | none | `VW_FEATURES= build-app.sh` (set and empty), or the App Store script |
 | `cargo run` / `cargo build` | off by default | none | |
 
-`updater` is a feature of the `vault-wallpaper` crate and is **off by default**, so a build
+`updater` is a feature of the `constellate` crate and is **off by default**, so a build
 that doesn't ask for it (the App Store build included) contains no Sparkle code: Apple rejects
 apps with their own updater. Without the feature, `crates/app/src/updater.rs` compiles to a
 stub that returns `None`. With it, the app loads `Contents/Frameworks/Sparkle.framework` at
@@ -117,7 +117,7 @@ unpacks it into `.cache/sparkle/<version>/` (git-ignored); the other scripts cal
 `build-app.sh` writes these `Info.plist` keys (override with `VW_SPARKLE_FEED_URL` and
 `VW_SPARKLE_PUBLIC_KEY` for tests):
 
-- `SUFeedURL`: `https://github.com/william-ricchiuti/vault-wallpaper/releases/download/appcast/appcast.xml`,
+- `SUFeedURL`: `https://github.com/william-ricchiuti/constellate/releases/download/appcast/appcast.xml`,
   the `appcast.xml` asset of a release of its own, tag `appcast` (`SPARKLE_APPCAST_TAG`). It
   is created with the first release and its asset replaced (`gh release upload --clobber`)
   with every later one, so the URL exists from the first release on and never moves. It is
@@ -157,7 +157,7 @@ Run it after the DMG is signed, notarized and stapled: the signature covers the 
 users download. It runs `generate_appcast` on a scratch folder holding only that DMG. That
 reads the build number from the app inside the DMG, signs the DMG and writes the `<item>`,
 with the enclosure
-`https://github.com/william-ricchiuti/vault-wallpaper/releases/download/v<version>/Vault-Wallpaper-<version>.dmg`
+`https://github.com/william-ricchiuti/constellate/releases/download/v<version>/Constellate-<version>.dmg`
 (`VW_APPCAST_URL_PREFIX` overrides the folder). `<version>` defaults to the app's `VWVersion`.
 The output goes to `--out`, by default `dist/appcast/appcast.xml`. If a file is already there,
 the new item goes on top. `release.sh` never relies on a leftover file: a real run deletes it,
@@ -178,13 +178,13 @@ Sparkle compares `CFBundleVersion` (the build number), so every release needs a 
 Check the result:
 
 ```bash
-lipo -info "dist/Vault Wallpaper.app/Contents/MacOS/vault-wallpaper"
-plutil -lint "dist/Vault Wallpaper.app/Contents/Info.plist"
-open "dist/Vault Wallpaper.app"
+lipo -info "dist/Constellate.app/Contents/MacOS/constellate"
+plutil -lint "dist/Constellate.app/Contents/Info.plist"
+open "dist/Constellate.app"
 ```
 
 To try a first run without touching your real settings, give it a scratch home folder:
-`open --env HOME=/tmp/vw-home "dist/Vault Wallpaper.app"`. Quit it from its menu-bar icon.
+`open --env HOME=/tmp/vw-home "dist/Constellate.app"`. Quit it from its menu-bar icon.
 
 ## 2. `sign.sh`
 
@@ -229,7 +229,7 @@ A sandboxed build without the self-updater, signed for the store and packaged wi
 `productbuild`, is in [`appstore/`](appstore/README.md): `packaging/appstore/build.sh
 --dry-run` for a local test, and the steps William takes in App Store
 Connect. `release.sh` calls it. The same build can be archived and uploaded from Xcode with
-[`../xcode/VaultWallpaper.xcodeproj`](../xcode/VaultWallpaper.xcodeproj).
+[`../xcode/Constellate.xcodeproj`](../xcode/Constellate.xcodeproj).
 
 ## One command: `release.sh`
 
@@ -276,18 +276,18 @@ These are agreed between sessions. If you change one, change `release.sh` too.
 
 | Script | Owner | Call | Output |
 |---|---|---|---|
-| `build-app.sh` | packaging + Sparkle session | `VW_FEATURES` unset: direct build (`updater`, Sparkle.framework embedded); `VW_FEATURES=` (set, empty): App Store build, no Sparkle; any list containing `updater` embeds Sparkle. `release.sh` sets `VW_FEATURES=updater` explicitly | `dist/Vault Wallpaper.app` |
+| `build-app.sh` | packaging + Sparkle session | `VW_FEATURES` unset: direct build (`updater`, Sparkle.framework embedded); `VW_FEATURES=` (set, empty): App Store build, no Sparkle; any list containing `updater` embeds Sparkle. `release.sh` sets `VW_FEATURES=updater` explicitly | `dist/Constellate.app` |
 | `notarize.sh` | packaging | `notarize.sh [<app or dmg>]`; `VW_NOTARY_PROFILE=<profile>`, or `VW_NOTARY_KEY_PATH` + `VW_NOTARY_KEY_ID` + `VW_NOTARY_ISSUER` (API key, used by CI) | the app or DMG, stapled |
 | `build-number.sh` | release safety | sourced; `vw_build_number <root>` sets `BUILD_NUMBER` or fails (shallow clone, `HEAD` not on `origin/main`); `VW_BUILD_NUMBER`, `VW_BUILD_FROM_ANY_COMMIT` | |
 | `notices.sh` | release safety | `notices.sh [--check]`, needs cargo-about | `THIRD-PARTY-NOTICES.txt` |
 | `make-appcast.sh` | Sparkle session | `make-appcast.sh <dmg> [<version>] [--out <file>] [--unsigned]`; version defaults to the DMG app's `VWVersion`. Key source, in order: `VW_SPARKLE_PRIVATE_KEY` (base64 seed; CI's `SPARKLE_PRIVATE_KEY` secret), `VW_SPARKLE_KEY_FILE` (path), then the login Keychain. Prints the appcast path on its last stdout line | default `dist/appcast/appcast.xml`; `release.sh` passes `--out dist/appcast.xml` |
-| `appstore/build.sh` | App Store session | `build.sh [--dry-run]` (dry run: ad-hoc signed, unsigned pkg). A real build needs `VW_TEAM_ID`, `VW_APP_IDENTITY`, `VW_INSTALLER_IDENTITY`, `VW_PROVISIONING_PROFILE`, else exit 2. Reads the version from `crates/app/Cargo.toml`, so it runs after the bump | `dist/appstore/Vault-Wallpaper-<short>-<build>.pkg`, path on the last stdout line |
-| `homebrew/bump-cask.sh` | release automation | `bump-cask.sh <version> <dmg> [tap-dir]` | edits `<tap-dir>/Casks/vault-wallpaper.rb` |
+| `appstore/build.sh` | App Store session | `build.sh [--dry-run]` (dry run: ad-hoc signed, unsigned pkg). A real build needs `VW_TEAM_ID`, `VW_APP_IDENTITY`, `VW_INSTALLER_IDENTITY`, `VW_PROVISIONING_PROFILE`, else exit 2. Reads the version from `crates/app/Cargo.toml`, so it runs after the bump | `dist/appstore/Constellate-<short>-<build>.pkg`, path on the last stdout line |
+| `homebrew/bump-cask.sh` | release automation | `bump-cask.sh <version> <dmg> [tap-dir]` | edits `<tap-dir>/Casks/constellate.rb` |
 
 The enclosure URL is
-`https://github.com/william-ricchiuti/vault-wallpaper/releases/download/v<version>/Vault-Wallpaper-<version>.dmg`.
+`https://github.com/william-ricchiuti/constellate/releases/download/v<version>/Constellate-<version>.dmg`.
 The feed (`SUFeedURL`) is
-`https://github.com/william-ricchiuti/vault-wallpaper/releases/download/appcast/appcast.xml`:
+`https://github.com/william-ricchiuti/constellate/releases/download/appcast/appcast.xml`:
 one fixed `appcast` release whose `appcast.xml` each release replaces, after its DMG is up.
 
 Every release that updates the feed reaches Sparkle users, pre-release or not: the
@@ -299,7 +299,7 @@ release back out, download `appcast.xml` from the `appcast` release, delete that
 
 ## Homebrew
 
-`homebrew/vault-wallpaper.rb` is the cask template, with `auto_updates true` because Sparkle
+`homebrew/constellate.rb` is the cask template, with `auto_updates true` because Sparkle
 updates the app. `homebrew/bump-cask.sh` copies it into a clone of
 `william-ricchiuti/homebrew-tap` and sets `version` and `sha256`. To check it locally without
 publishing anything:
@@ -307,10 +307,10 @@ publishing anything:
 ```bash
 brew tap-new --no-git vwtest/local
 mkdir -p "$(brew --repository vwtest/local)/Casks"
-cp packaging/homebrew/vault-wallpaper.rb "$(brew --repository vwtest/local)/Casks/"
-brew style vwtest/local/vault-wallpaper
+cp packaging/homebrew/constellate.rb "$(brew --repository vwtest/local)/Casks/"
+brew style vwtest/local/constellate
 brew trust vwtest/local     # current Homebrew won't load casks from an untrusted tap
-brew audit --cask --strict vwtest/local/vault-wallpaper
+brew audit --cask --strict vwtest/local/constellate
 brew untrust vwtest/local && brew untap vwtest/local
 ```
 

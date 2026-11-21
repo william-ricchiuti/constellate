@@ -1,6 +1,6 @@
 # Release checklist
 
-How to ship Vault Wallpaper: a notarized DMG on GitHub Releases, Sparkle auto-updates fed by
+How to ship Constellate: a notarized DMG on GitHub Releases, Sparkle auto-updates fed by
 an appcast on a fixed `appcast` release, a Homebrew cask in William's tap, and the Mac App
 Store build.
 
@@ -148,7 +148,7 @@ in `packaging/appstore/README.md`. Once `VW_TEAM_ID`, `VW_APP_IDENTITY`,
 `.pkg` through `packaging/appstore/build.sh`. Until then it says the App Store step was
 skipped. CI doesn't build it.
 
-The easier route is Xcode: open `xcode/VaultWallpaper.xcodeproj`, **Product > Archive**, then
+The easier route is Xcode: open `xcode/Constellate.xcodeproj`, **Product > Archive**, then
 **Distribute App > App Store Connect**. Xcode makes the certificates and profile itself.
 Click-by-click steps: "Uploading with Xcode" in `packaging/appstore/README.md`. With that
 route `release.sh` keeps skipping the App Store step, which is fine.
@@ -220,21 +220,21 @@ nothing: at the end it prints the version, the `CFBundleVersion` and these, fill
 ```bash
 git commit -am "chore(release): 1.0.0-beta.2"
 git push origin HEAD
-gh release create v1.0.0-beta.2 dist/Vault-Wallpaper-1.0.0-beta.2.dmg \
-  --repo william-ricchiuti/vault-wallpaper --target <the commit's sha> \
-  --title "Vault Wallpaper 1.0.0-beta.2" \
+gh release create v1.0.0-beta.2 dist/Constellate-1.0.0-beta.2.dmg \
+  --repo william-ricchiuti/constellate --target <the commit's sha> \
+  --title "Constellate 1.0.0-beta.2" \
   --notes-file dist/release-notes-1.0.0-beta.2.md --prerelease
 git fetch --tags
 # the Sparkle feed, after the DMG is up (the first time, this creates the appcast release):
-gh release view appcast --repo william-ricchiuti/vault-wallpaper >/dev/null 2>&1 ||
-  gh release create appcast --repo william-ricchiuti/vault-wallpaper --prerelease --latest=false \
+gh release view appcast --repo william-ricchiuti/constellate >/dev/null 2>&1 ||
+  gh release create appcast --repo william-ricchiuti/constellate --prerelease --latest=false \
     --target <the commit's sha> --title "Sparkle update feed" --notes "..."
-gh release upload appcast dist/appcast.xml --repo william-ricchiuti/vault-wallpaper --clobber
-packaging/homebrew/bump-cask.sh 1.0.0-beta.2 dist/Vault-Wallpaper-1.0.0-beta.2.dmg ~/dev/homebrew-tap
+gh release upload appcast dist/appcast.xml --repo william-ricchiuti/constellate --clobber
+packaging/homebrew/bump-cask.sh 1.0.0-beta.2 dist/Constellate-1.0.0-beta.2.dmg ~/dev/homebrew-tap
 ```
 
 **The feed.** Sparkle reads
-`https://github.com/william-ricchiuti/vault-wallpaper/releases/download/appcast/appcast.xml`
+`https://github.com/william-ricchiuti/constellate/releases/download/appcast/appcast.xml`
 (`SUFeedURL`), an asset of the fixed release `appcast`. It exists from the first release on
 and every release replaces it, so the feed is never missing, pre-releases included (the old
 `releases/latest/download/…` URL 404s while every release is a pre-release). The `appcast`
@@ -247,7 +247,7 @@ without building. Don't push the tag yourself before the release exists: CI woul
 second build. Then commit and push the cask in the tap:
 
 ```bash
-cd ~/dev/homebrew-tap && brew style Casks/vault-wallpaper.rb && git commit -am "vault-wallpaper 1.0.0-beta.2" && git push
+cd ~/dev/homebrew-tap && brew style Casks/constellate.rb && git commit -am "constellate 1.0.0-beta.2" && git push
 ```
 
 ### B3. Path 2: one tag, and CI does the rest **[William]**
@@ -255,7 +255,7 @@ cd ~/dev/homebrew-tap && brew style Casks/vault-wallpaper.rb && git commit -am "
 ```bash
 packaging/release.sh 1.0.0-beta.2 --bump-only
 git commit -am "chore(release): 1.0.0-beta.2"
-git tag -a v1.0.0-beta.2 -m "Vault Wallpaper 1.0.0-beta.2"
+git tag -a v1.0.0-beta.2 -m "Constellate 1.0.0-beta.2"
 git push origin HEAD v1.0.0-beta.2
 ```
 
@@ -275,29 +275,29 @@ as described there.
 
 ```bash
 V=1.0.0-beta.2
-curl -fLO "https://github.com/william-ricchiuti/vault-wallpaper/releases/download/v$V/Vault-Wallpaper-$V.dmg"
-spctl --assess --type open --context context:primary-signature --verbose=2 "Vault-Wallpaper-$V.dmg"
-hdiutil attach -nobrowse -readonly "Vault-Wallpaper-$V.dmg"
-spctl --assess --type execute --verbose=2 "/Volumes/Vault Wallpaper/Vault Wallpaper.app"
-hdiutil detach "/Volumes/Vault Wallpaper"
+curl -fLO "https://github.com/william-ricchiuti/constellate/releases/download/v$V/Constellate-$V.dmg"
+spctl --assess --type open --context context:primary-signature --verbose=2 "Constellate-$V.dmg"
+hdiutil attach -nobrowse -readonly "Constellate-$V.dmg"
+spctl --assess --type execute --verbose=2 "/Volumes/Constellate/Constellate.app"
+hdiutil detach "/Volumes/Constellate"
 ```
 
 Both `spctl` checks should say `accepted` with `source=Notarized Developer ID`.
-`xcrun stapler validate "/Volumes/Vault Wallpaper/Vault Wallpaper.app"` (before the detach)
+`xcrun stapler validate "/Volumes/Constellate/Constellate.app"` (before the detach)
 should say the app itself has a ticket. The feed should be live and hold the new version:
 
 ```bash
-curl -fsSL https://github.com/william-ricchiuti/vault-wallpaper/releases/download/appcast/appcast.xml | grep -E 'sparkle:version>|edSignature' | head -n 4
+curl -fsSL https://github.com/william-ricchiuti/constellate/releases/download/appcast/appcast.xml | grep -E 'sparkle:version>|edSignature' | head -n 4
 ```
 
 Then:
 
 - **Smoke test:** install from the DMG to `/Applications`. It appears in the menu bar and not
   the Dock, and with no config it asks for a vault. Settings… opens, and Export PNG writes
-  `~/Pictures/Vault Wallpaper/`. Start at Login shows up in System Settings > General > Login
+  `~/Pictures/Constellate/`. Start at Login shows up in System Settings > General > Login
   Items.
-- **Homebrew:** `brew update && brew trust --cask william-ricchiuti/tap/vault-wallpaper && brew install --cask william-ricchiuti/tap/vault-wallpaper`,
-  and `brew audit --cask --online william-ricchiuti/tap/vault-wallpaper`.
+- **Homebrew:** `brew update && brew trust --cask william-ricchiuti/tap/constellate && brew install --cask william-ricchiuti/tap/constellate`,
+  and `brew audit --cask --online william-ricchiuti/tap/constellate`.
 - **Sparkle:** with the previous version installed, choose Check for Updates… It should offer
   this version, install it and relaunch.
 

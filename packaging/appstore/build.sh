@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Build the Mac App Store flavour: a universal, sandboxed, App-Store-signed
-# "dist/appstore/Vault Wallpaper.app" and the installer package App Store Connect takes.
+# "dist/appstore/Constellate.app" and the installer package App Store Connect takes.
 #
 # Usage:
 #   packaging/appstore/build.sh --dry-run                       # local test: ad-hoc signature, unsigned .pkg
@@ -8,7 +8,7 @@
 #   VW_TEAM_ID=ABCDE12345 \
 #   VW_APP_IDENTITY="Apple Distribution: Name (ABCDE12345)" \
 #   VW_INSTALLER_IDENTITY="3rd Party Mac Developer Installer: Name (ABCDE12345)" \
-#   VW_PROVISIONING_PROFILE=~/Downloads/Vault_Wallpaper_Mac_App_Store.provisionprofile \
+#   VW_PROVISIONING_PROFILE=~/Downloads/Constellate_Mac_App_Store.provisionprofile \
 #   packaging/appstore/build.sh                                 # real upload build
 #
 # Needs: rustup, Xcode command line tools (lipo, iconutil, sips, plutil, codesign, productbuild).
@@ -22,9 +22,9 @@ HERE="$(cd "$(dirname "$0")" && pwd)"
 ROOT="$(cd "$HERE/../.." && pwd)"
 cd "$ROOT"
 
-APP_NAME="Vault Wallpaper"
+APP_NAME="Constellate"
 BUNDLE_ID="com.williamricchiuti.vaultwallpaper"
-BIN_NAME="vault-wallpaper"
+BIN_NAME="constellate"
 MIN_MACOS="13.0"
 CATEGORY="public.app-category.productivity"
 TARGETS=(aarch64-apple-darwin x86_64-apple-darwin)
@@ -216,7 +216,7 @@ repack_without_appledouble() {
   rm -rf "$exp" "$root"
 }
 
-PKG="$OUT/Vault-Wallpaper-$SHORT_VERSION-$BUILD_NUMBER.pkg"
+PKG="$OUT/Constellate-$SHORT_VERSION-$BUILD_NUMBER.pkg"
 rm -f "$PKG"
 if [[ -n "$ADHOC" ]]; then
   echo "==> ad-hoc signing with the sandbox entitlements (local testing only; not uploadable)"

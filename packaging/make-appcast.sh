@@ -17,7 +17,7 @@
 #   VW_SPARKLE_KEY_FILE     a file holding it (tests)
 #   the login Keychain      where packaging/sparkle-keys.sh put it (William's Mac)
 # VW_APPCAST_URL_PREFIX overrides the download folder
-# (default https://github.com/william-ricchiuti/vault-wallpaper/releases/download/v<version>/).
+# (default https://github.com/william-ricchiuti/constellate/releases/download/v<version>/).
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -67,7 +67,7 @@ if [[ -z "$BUILD" ]]; then
   exit 1
 fi
 VERSION="${VERSION:-$APP_VERSION}"
-PREFIX="${VW_APPCAST_URL_PREFIX:-https://github.com/william-ricchiuti/vault-wallpaper/releases/download/v$VERSION/}"
+PREFIX="${VW_APPCAST_URL_PREFIX:-https://github.com/william-ricchiuti/constellate/releases/download/v$VERSION/}"
 NAME="$(basename "$DMG")"
 
 OUT_DIR="$(dirname "$OUT_FILE")"
@@ -80,7 +80,7 @@ if [[ "$UNSIGNED" == 1 ]]; then
 <?xml version="1.0" encoding="utf-8"?>
 <rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle">
     <channel>
-        <title>Vault Wallpaper</title>
+        <title>Constellate</title>
         <item>
             <title>$SHORT</title>
             <pubDate>$(LC_ALL=C date -u '+%a, %d %b %Y %H:%M:%S +0000')</pubDate>
@@ -137,7 +137,7 @@ WORK="$(mktemp -d "${TMPDIR:-/tmp}/vw-appcast-work.XXXXXX")"
 cp "$DMG" "$WORK/"
 [[ -f "$OUT_FILE" ]] && cp "$OUT_FILE" "$WORK/appcast.xml"
 
-ARGS=(--download-url-prefix "$PREFIX" --link "https://github.com/william-ricchiuti/vault-wallpaper" --maximum-versions 10)
+ARGS=(--download-url-prefix "$PREFIX" --link "https://github.com/william-ricchiuti/constellate" --maximum-versions 10)
 echo "==> generate_appcast ($VERSION, build $BUILD, downloads from $PREFIX)" >&2
 if [[ -n "${VW_SPARKLE_PRIVATE_KEY:-}" ]]; then
   printf '%s' "$VW_SPARKLE_PRIVATE_KEY" | "$SPARKLE_DIR/bin/generate_appcast" --ed-key-file - "${ARGS[@]}" "$WORK" >&2

@@ -1,6 +1,6 @@
 # Migrating from the web version
 
-Vault Wallpaper replaces [obsidian-live-wallpaper](https://github.com/william-ricchiuti/obsidian-live-wallpaper)
+Constellate replaces [obsidian-live-wallpaper](https://github.com/william-ricchiuti/obsidian-live-wallpaper)
 on macOS. It reads the same `config.json` format, so your settings and custom presets come
 across. You no longer need Node, `npx`, Plash or a browser tab.
 
@@ -18,7 +18,7 @@ Custom presets saved in its settings page are in `custom-presets.json` in the sa
 
 ## 2. Import it
 
-1. Install and open Vault Wallpaper (see the [README](../README.md#install)). If it asks for a
+1. Install and open Constellate (see the [README](../README.md#install)). If it asks for a
    folder on first run, you can cancel; the import sets it.
 2. In the menu bar, click the graph icon and choose **Import Web Version Settings…**.
 3. Pick the old config file. If you already have settings, the app asks before replacing
@@ -27,7 +27,7 @@ Custom presets saved in its settings page are in `custom-presets.json` in the sa
 What happens:
 
 - Every setting that still means something is copied to
-  `~/Library/Application Support/Vault Wallpaper/config.json`, including `vaultPath`.
+  `~/Library/Application Support/Constellate/config.json`, including `vaultPath`.
 - `port`, `refreshMs`, `renderer` and `fastHash` are dropped: there is no server or browser
   renderer any more. Any value that is invalid is skipped too; the rest still imports. The
   confirmation lists what was skipped.
@@ -55,7 +55,7 @@ The web version had 16 themes drawn with Canvas2D. The native app has its own th
 designed to stay still and cost almost nothing (see `docs/plan.md`). Your `theme` value is
 kept, so nothing is lost if a web theme is ported later.
 
-| Web theme (`theme`) | In Vault Wallpaper 1.0 beta |
+| Web theme (`theme`) | In Constellate 1.0 beta |
 |---|---|
 | `default` and its presets | **Default**, the same renderer and presets |
 | `celestial` | Drawn with **Default** for now. **Night Sky** is the native star chart: switch to it in Settings. |

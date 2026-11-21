@@ -21,7 +21,7 @@
 	     saved in the container as vault.bookmark. -->
 	<key>com.apple.security.files.bookmarks.app-scope</key>
 	<true/>
-	<!-- Export PNG writes ~/Pictures/Vault Wallpaper/vault-wallpaper-<time>.png, as the
+	<!-- Export PNG writes ~/Pictures/Constellate/constellate-<time>.png, as the
 	     direct build does, without a save panel. -->
 	<key>com.apple.security.assets.pictures.read-write</key>
 	<true/>

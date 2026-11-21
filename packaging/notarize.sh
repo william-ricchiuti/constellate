@@ -2,6 +2,8 @@
 # Notarize a signed app or DMG with Apple and staple the ticket to it.
 #
 # Usage: VW_NOTARY_PROFILE=vault-wallpaper-notary packaging/notarize.sh [file]
+#   (The profile is any name you stored with notarytool; "vault-wallpaper-notary" is from
+#   before the rename to Constellate and still works.)
 #   file  a .app: zipped with `ditto -c -k --keepParent`, the zip submitted, and the ticket
 #         stapled to the .app itself, so the app passes Gatekeeper offline once it's copied
 #         out of the DMG (or installed by Homebrew, or replaced by Sparkle).

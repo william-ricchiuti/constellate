@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <!--
-  Privacy manifest. Vault Wallpaper does no tracking, collects no data and makes no network
+  Privacy manifest. Constellate does no tracking, collects no data and makes no network
   connections. The two "required reason" API categories below are used only on the device:
   - File timestamps: note modification times (the layout places recently edited notes,
     and an edited note is detected by its new time), read from the vault the user picked

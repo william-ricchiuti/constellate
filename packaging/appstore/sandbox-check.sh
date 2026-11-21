@@ -11,9 +11,9 @@
 set -uo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
-APP="${1:-$ROOT/dist/appstore/Vault Wallpaper.app}"
-BIN="$APP/Contents/MacOS/vault-wallpaper"
-SUPPORT="$HOME/Library/Containers/com.williamricchiuti.vaultwallpaper/Data/Library/Application Support/Vault Wallpaper"
+APP="${1:-$ROOT/dist/appstore/Constellate.app}"
+BIN="$APP/Contents/MacOS/constellate"
+SUPPORT="$HOME/Library/Containers/com.williamricchiuti.vaultwallpaper/Data/Library/Application Support/Constellate"
 LOGS="$(mktemp -d -t vw-sandbox-check)"
 ERR="$LOGS/app.err"
 SBX="$LOGS/sandbox.log"
@@ -30,7 +30,7 @@ echo "== signature"
 ENT="$(codesign -d --entitlements :- "$APP" 2>/dev/null)"
 grep -q com.apple.security.app-sandbox <<<"$ENT" && ok "sandbox entitlement present" || bad "not sandboxed"
 
-/usr/bin/log stream --style compact --predicate 'sender == "Sandbox" AND eventMessage CONTAINS "vault-wallpaper"' >"$SBX" 2>&1 &
+/usr/bin/log stream --style compact --predicate 'sender == "Sandbox" AND eventMessage CONTAINS "constellate"' >"$SBX" 2>&1 &
 LOGPID=$!
 trap 'kill $LOGPID 2>/dev/null' EXIT
 quit
@@ -68,12 +68,12 @@ ask "Menu bar icon > Settings…, click a different theme tile, close the window
 grep -q 'config reloaded' "$ERR" && ok "a settings change reached the config" || bad "no 'config reloaded' line"
 yes "Did the settings page show (not blank) and the wallpaper change?" && ok "settings page shown" || bad "settings page"
 
-echo "== 5. Export PNG to ~/Pictures/Vault Wallpaper"
-before="$(ls "$HOME/Pictures/Vault Wallpaper" 2>/dev/null | wc -l)"
+echo "== 5. Export PNG to ~/Pictures/Constellate"
+before="$(ls "$HOME/Pictures/Constellate" 2>/dev/null | wc -l)"
 ask "Menu bar icon > Export PNG"
 sleep 2
-after="$(ls "$HOME/Pictures/Vault Wallpaper" 2>/dev/null | wc -l)"
-((after > before)) && ok "new file: $(ls -t "$HOME/Pictures/Vault Wallpaper" | head -1)" || bad "no new PNG ($(grep 'export failed' "$ERR" | tail -1))"
+after="$(ls "$HOME/Pictures/Constellate" 2>/dev/null | wc -l)"
+((after > before)) && ok "new file: $(ls -t "$HOME/Pictures/Constellate" | head -1)" || bad "no new PNG ($(grep 'export failed' "$ERR" | tail -1))"
 
 echo "== 6. Import Web Version Settings… (open panel)"
 if yes "Do you have a web-version config.json to try? (it replaces this build's settings)"; then
@@ -92,6 +92,6 @@ ask "Menu bar icon > Open Config File"
 yes "Did config.json open in an editor?" && ok "config opened" || bad "open config"
 
 quit
-echo "== sandbox violations from vault-wallpaper"
+echo "== sandbox violations from constellate"
 grep -v '^Filtering\|^Timestamp' "$SBX" | sed 's/.*Sandbox: //' | sort | uniq -c | sort -rn | head -20
 echo "== $pass passed, $fail failed. Logs: $LOGS"

@@ -27,7 +27,7 @@ env:
   CARGO_INCREMENTAL: 0
   # packaging/notices.sh's generator; release.sh and ci.yml pin the same version.
   CARGO_ABOUT_VERSION: 0.9.3
-  REPO: william-ricchiuti/vault-wallpaper
+  REPO: william-ricchiuti/constellate
   TAP_REPO: william-ricchiuti/homebrew-tap
 
 defaults:
@@ -80,7 +80,7 @@ jobs:
           V: ${{ steps.version.outputs.version }}
         run: |
           if gh release view "$GITHUB_REF_NAME" --repo "$REPO" --json assets --jq '.assets[].name' 2>/dev/null \
-               | grep -qx "Vault-Wallpaper-$V.dmg"; then
+               | grep -qx "Constellate-$V.dmg"; then
             echo "::notice::release $GITHUB_REF_NAME already has its DMG; nothing to do"
             echo "published=true" >> "$GITHUB_OUTPUT"
           else
@@ -187,12 +187,12 @@ jobs:
           [[ "$PRERELEASE" == "true" ]] && FLAGS+=(--prerelease)
           if gh release view "$GITHUB_REF_NAME" --repo "$REPO" >/dev/null 2>&1; then
             # A release without the DMG (e.g. a draft made by hand): add the DMG to it.
-            gh release upload "$GITHUB_REF_NAME" "dist/Vault-Wallpaper-$V.dmg" \
+            gh release upload "$GITHUB_REF_NAME" "dist/Constellate-$V.dmg" \
               --repo "$REPO" --clobber
           else
-            gh release create "$GITHUB_REF_NAME" "dist/Vault-Wallpaper-$V.dmg" \
+            gh release create "$GITHUB_REF_NAME" "dist/Constellate-$V.dmg" \
               --repo "$REPO" --verify-tag \
-              --title "Vault Wallpaper $V" \
+              --title "Constellate $V" \
               --notes-file "dist/release-notes-$V.md" "${FLAGS[@]}"
           fi
 
@@ -207,7 +207,7 @@ jobs:
           if ! gh release view "$SPARKLE_APPCAST_TAG" --repo "$REPO" >/dev/null 2>&1; then
             gh release create "$SPARKLE_APPCAST_TAG" --repo "$REPO" --prerelease --latest=false \
               --target "$GITHUB_SHA" --title "Sparkle update feed" \
-              --notes "appcast.xml for Vault Wallpaper's automatic updates. Not a release; don't delete it."
+              --notes "appcast.xml for Constellate's automatic updates. Not a release; don't delete it."
           fi
           gh release upload "$SPARKLE_APPCAST_TAG" dist/appcast.xml --repo "$REPO" --clobber
 
@@ -224,18 +224,18 @@ jobs:
           TAP="$RUNNER_TEMP/homebrew-tap"
           gh repo clone "$TAP_REPO" "$TAP" -- --depth 1
           gh auth setup-git
-          packaging/homebrew/bump-cask.sh "$V" "dist/Vault-Wallpaper-$V.dmg" "$TAP"
+          packaging/homebrew/bump-cask.sh "$V" "dist/Constellate-$V.dmg" "$TAP"
           cd "$TAP"
-          BRANCH="vault-wallpaper-$V"
+          BRANCH="constellate-$V"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git switch -c "$BRANCH"
-          git add Casks/vault-wallpaper.rb
-          git commit -m "vault-wallpaper $V"
+          git add Casks/constellate.rb
+          git commit -m "constellate $V"
           git push --force origin "$BRANCH"
           gh pr create --repo "$TAP_REPO" --head "$BRANCH" \
-            --title "vault-wallpaper $V" \
-            --body "Bumps the cask to [v$V](https://github.com/$REPO/releases/tag/v$V). Opened by the vault-wallpaper release workflow." \
+            --title "constellate $V" \
+            --body "Bumps the cask to [v$V](https://github.com/$REPO/releases/tag/v$V). Opened by the constellate release workflow." \
             || echo "::notice::a PR for $BRANCH already exists"
 
       - name: Remove the keychain and key

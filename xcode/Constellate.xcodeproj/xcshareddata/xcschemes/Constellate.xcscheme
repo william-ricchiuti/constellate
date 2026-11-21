@@ -15,9 +15,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "CFC9E01666DA9F5CA950BF33"
-               BuildableName = "Vault Wallpaper.app"
-               BlueprintName = "VaultWallpaper"
-               ReferencedContainer = "container:VaultWallpaper.xcodeproj">
+               BuildableName = "Constellate.app"
+               BlueprintName = "Constellate"
+               ReferencedContainer = "container:Constellate.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -31,9 +31,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "CFC9E01666DA9F5CA950BF33"
-            BuildableName = "Vault Wallpaper.app"
-            BlueprintName = "VaultWallpaper"
-            ReferencedContainer = "container:VaultWallpaper.xcodeproj">
+            BuildableName = "Constellate.app"
+            BlueprintName = "Constellate"
+            ReferencedContainer = "container:Constellate.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
       <Testables>
@@ -54,9 +54,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "CFC9E01666DA9F5CA950BF33"
-            BuildableName = "Vault Wallpaper.app"
-            BlueprintName = "VaultWallpaper"
-            ReferencedContainer = "container:VaultWallpaper.xcodeproj">
+            BuildableName = "Constellate.app"
+            BlueprintName = "Constellate"
+            ReferencedContainer = "container:Constellate.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -71,9 +71,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "CFC9E01666DA9F5CA950BF33"
-            BuildableName = "Vault Wallpaper.app"
-            BlueprintName = "VaultWallpaper"
-            ReferencedContainer = "container:VaultWallpaper.xcodeproj">
+            BuildableName = "Constellate.app"
+            BlueprintName = "Constellate"
+            ReferencedContainer = "container:Constellate.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>

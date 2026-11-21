@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# Run Script build phase of xcode/VaultWallpaper.xcodeproj (the Mac App Store build in Xcode).
+# Run Script build phase of xcode/Constellate.xcodeproj (the Mac App Store build in Xcode).
 # Xcode runs it with its build settings in the environment; don't run it by hand.
 #
 # It does what packaging/appstore/build.sh does before signing:
-#   - cargo build --release --no-default-features -p vault-wallpaper for each arch in $ARCHS
+#   - cargo build --release --no-default-features -p constellate for each arch in $ARCHS
 #     (arm64 and x86_64 for Archive), lipo'd into the bundle as the executable;
 #   - a dSYM next to the app (Xcode puts it in the archive and uploads it, so App Store Connect
 #     crash reports show function names and lines), then the debug map stripped from the binary;
@@ -16,7 +16,7 @@ set -euo pipefail
 
 : "${SRCROOT:?run from Xcode}" "${TARGET_BUILD_DIR:?}" "${EXECUTABLE_PATH:?}" "${INFOPLIST_PATH:?}"
 ROOT="$(cd "$SRCROOT/.." && pwd)"
-BIN_NAME="vault-wallpaper"
+BIN_NAME="constellate"
 
 # Xcode starts scripts with a short PATH and none of the user's shell setup.
 export PATH="${CARGO_HOME:-$HOME/.cargo}/bin:/opt/homebrew/bin:/usr/local/bin:$PATH"
@@ -31,7 +31,7 @@ SHORT_VERSION="${VERSION%%[-+]*}"
 # shellcheck source=../build-number.sh
 source "$ROOT/packaging/build-number.sh"
 vw_build_number "$ROOT" || exit 1
-echo "Vault Wallpaper $VERSION (short $SHORT_VERSION, build $BUILD_NUMBER), archs: $ARCHS"
+echo "Constellate $VERSION (short $SHORT_VERSION, build $BUILD_NUMBER), archs: $ARCHS"
 
 TARGETS=()
 for a in $ARCHS; do

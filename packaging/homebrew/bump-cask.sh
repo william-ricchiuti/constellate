@@ -5,16 +5,16 @@
 #   version  e.g. 1.0.0-beta.2 (a leading "v" is dropped)
 #   dmg      the notarized, stapled DMG, whose sha256 goes in the cask
 #   tap-dir  a clone of william-ricchiuti/homebrew-tap (default: $VW_TAP_DIR, else
-#            ~/dev/homebrew-tap). Writes <tap-dir>/Casks/vault-wallpaper.rb, starting from
+#            ~/dev/homebrew-tap). Writes <tap-dir>/Casks/constellate.rb, starting from
 #            this repo's template if the tap has no cask yet.
 #
 # It edits one file and doesn't commit or push. Then, in the tap:
-#   brew style Casks/vault-wallpaper.rb
-#   git commit -am "vault-wallpaper <version>" && git push
+#   brew style Casks/constellate.rb
+#   git commit -am "constellate <version>" && git push
 set -euo pipefail
 
 HERE="$(cd "$(dirname "$0")" && pwd)"
-TEMPLATE="$HERE/vault-wallpaper.rb"
+TEMPLATE="$HERE/constellate.rb"
 
 if [[ $# -lt 2 || $# -gt 3 ]]; then
   sed -n '2,15p' "$0" | sed 's/^# \{0,1\}//' >&2
@@ -31,12 +31,12 @@ fi
 [[ -f "$DMG" ]] || { echo "error: $DMG not found" >&2; exit 1; }
 [[ -d "$TAP" ]] || { echo "error: tap directory $TAP not found (clone william-ricchiuti/homebrew-tap)" >&2; exit 1; }
 
-EXPECTED="Vault-Wallpaper-$VERSION.dmg"
+EXPECTED="Constellate-$VERSION.dmg"
 if [[ "$(basename "$DMG")" != "$EXPECTED" ]]; then
   echo "warning: $(basename "$DMG") isn't named $EXPECTED, which is what the cask downloads" >&2
 fi
 
-CASK="$TAP/Casks/vault-wallpaper.rb"
+CASK="$TAP/Casks/constellate.rb"
 mkdir -p "$TAP/Casks"
 if [[ ! -f "$CASK" ]]; then
   echo "==> $CASK doesn't exist; starting from $TEMPLATE"

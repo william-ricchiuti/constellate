@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Build "dist/Vault Wallpaper.app": a universal (Apple Silicon + Intel) app bundle.
+# Build "dist/Constellate.app": a universal (Apple Silicon + Intel) app bundle.
 #
 # Usage: packaging/build-app.sh
 # Needs: rustup, Xcode command line tools (lipo, iconutil, sips, plutil).
@@ -17,9 +17,9 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
-APP_NAME="Vault Wallpaper"
+APP_NAME="Constellate"
 BUNDLE_ID="com.williamricchiuti.vaultwallpaper"
-BIN_NAME="vault-wallpaper"          # cargo package and binary name (crates/app)
+BIN_NAME="constellate"          # cargo package and binary name (crates/app)
 MIN_MACOS="13.0"
 TARGETS=(aarch64-apple-darwin x86_64-apple-darwin)
 

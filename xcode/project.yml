@@ -1,12 +1,12 @@
-# XcodeGen spec for VaultWallpaper.xcodeproj, the Mac App Store wrapper project.
+# XcodeGen spec for Constellate.xcodeproj, the Mac App Store wrapper project.
 # The .xcodeproj is committed, so nobody needs XcodeGen to build. After editing this file:
 #   cd xcode && xcodegen generate
 # Xcode then tidies the generated files when it opens them (the product reference becomes
-# "Vault Wallpaper.app", the scheme format changes); commit what Xcode writes, it's harmless.
+# "Constellate.app", the scheme format changes); commit what Xcode writes, it's harmless.
 # The project has no sources of its own: a Run Script phase (packaging/appstore/xcode-build-phase.sh)
 # builds the Rust app with cargo and installs it as the bundle's executable. Xcode then does the
 # Info.plist, resources, signing, Archive and the App Store upload.
-name: VaultWallpaper
+name: Constellate
 options:
   bundleIdPrefix: com.williamricchiuti
   deploymentTarget:
@@ -18,7 +18,7 @@ settings:
     DEVELOPMENT_TEAM: 3AP82DL922
     MACOSX_DEPLOYMENT_TARGET: "13.0"
 targets:
-  VaultWallpaper:
+  Constellate:
     type: application
     platform: macOS
     sources:
@@ -34,8 +34,8 @@ targets:
         buildPhase: none
     settings:
       base:
-        PRODUCT_NAME: Vault Wallpaper
-        EXECUTABLE_NAME: vault-wallpaper
+        PRODUCT_NAME: Constellate
+        EXECUTABLE_NAME: constellate
         PRODUCT_BUNDLE_IDENTIFIER: com.williamricchiuti.vaultwallpaper
         INFOPLIST_FILE: Info.plist
         GENERATE_INFOPLIST_FILE: NO
@@ -75,10 +75,10 @@ targets:
           - $(TARGET_BUILD_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/AppIcon.icns
           - $(DWARF_DSYM_FOLDER_PATH)/$(DWARF_DSYM_FILE_NAME)
 schemes:
-  VaultWallpaper:
+  Constellate:
     build:
       targets:
-        VaultWallpaper: all
+        Constellate: all
     run:
       config: Debug
     archive:

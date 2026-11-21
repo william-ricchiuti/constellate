@@ -1,4 +1,4 @@
-# Vault Wallpaper
+# Constellate
 
 Your notes, or any folder, as your Mac's desktop wallpaper. Point it at an Obsidian vault (or
 a Logseq, Dendron, Foam, Zettlr or org-roam folder, or plain Markdown with links): every note
@@ -14,10 +14,10 @@ the menu bar: no browser, no Node, no local server, no wallpaper host app.
 
 ### From the DMG
 
-1. Download `Vault-Wallpaper-<version>.dmg` from
-   [Releases](https://github.com/william-ricchiuti/vault-wallpaper/releases).
-2. Open it and drag **Vault Wallpaper** to **Applications**.
-3. Open Vault Wallpaper from Applications. A small graph icon (three linked dots) appears in
+1. Download `Constellate-<version>.dmg` from
+   [Releases](https://github.com/william-ricchiuti/constellate/releases).
+2. Open it and drag **Constellate** to **Applications**.
+3. Open Constellate from Applications. A small graph icon (three linked dots) appears in
    the menu bar. The app has no Dock icon.
 
 ### With Homebrew
@@ -26,15 +26,31 @@ Homebrew 7 and later only load casks from other people's taps once you trust the
 first command does that for this one cask:
 
 ```bash
-brew trust --cask william-ricchiuti/tap/vault-wallpaper
-brew install --cask william-ricchiuti/tap/vault-wallpaper
+brew trust --cask william-ricchiuti/tap/constellate
+brew install --cask william-ricchiuti/tap/constellate
 ```
 
 Updates come from the app itself (Check for Updates…), so `brew upgrade` leaves it alone.
 
+### Coming from Vault Wallpaper
+
+Constellate was called **Vault Wallpaper** up to 1.0.0-beta.1. Nothing to do for the app
+itself: the beta updates itself to Constellate, and on its first launch Constellate moves your
+settings, layout cache and presets from `~/Library/Application Support/Vault Wallpaper/` to
+`~/Library/Application Support/Constellate/`, and your exported pictures from
+`~/Pictures/Vault Wallpaper/` to `~/Pictures/Constellate/`. Updated in place, the app may
+keep its old file name, `Vault Wallpaper.app`, in Applications; rename it if you like.
+
+With Homebrew, the old `vault-wallpaper` cask is renamed to `constellate` on `brew update`.
+Homebrew's trust doesn't carry over to the new name, so run this once:
+
+```bash
+brew trust --cask william-ricchiuti/tap/constellate
+```
+
 ## First run
 
-The first time it opens, Vault Wallpaper asks you to choose a folder: your notes folder (an
+The first time it opens, Constellate asks you to choose a folder: your notes folder (an
 Obsidian vault, for example) or any other folder. Until you choose one, the wallpaper shows a
 built-in sample graph. It reads the folder, lays out the graph and draws it behind your
 desktop icons, on every Space and every display. The layout is cached, so later launches
@@ -85,9 +101,9 @@ menu to bring your old `config.json` and custom presets over. See
 | Settings… | Themes, presets, colours, labels, layout and motion. Changes apply as you make them. |
 | Choose Folder… | Switch to another notes folder or any folder. |
 | Import Web Version Settings… | Read a `config.json` from the web version. |
-| Export PNG | Saves the current picture to `~/Pictures/Vault Wallpaper/` and shows it in Finder. With several displays, it saves the first display's picture. |
+| Export PNG | Saves the current picture to `~/Pictures/Constellate/` and shows it in Finder. With several displays, it saves the first display's picture. |
 | Open Config File | Opens `config.json` in your text editor; edits apply when you save. |
-| Start at Login | Opens Vault Wallpaper when you log in. |
+| Start at Login | Opens Constellate when you log in. |
 | Check for Updates… | Looks for a newer version now (DMG and Homebrew installs; the App Store updates its own copy). |
 
 ## Themes
@@ -108,7 +124,7 @@ Pick a theme or preset in **Settings…**. You can save your own presets there t
 
 ## Settings
 
-Settings are stored in `~/Library/Application Support/Vault Wallpaper/config.json`, in the
+Settings are stored in `~/Library/Application Support/Constellate/config.json`, in the
 same format the web version used, so you can also edit the file by hand. The app watches it
 and applies changes when the file is saved. Invalid values are skipped (the rest of the file
 still applies) and logged.
@@ -121,7 +137,7 @@ motion, how the folder is read (`sourceKind`: `auto`, `obsidian`, `notes`, `logs
 
 ## Privacy
 
-Everything stays on your Mac. Vault Wallpaper reads the notes in the folder you choose to find
+Everything stays on your Mac. Constellate reads the notes in the folder you choose to find
 links and tags (in any-folder mode it only looks at file names, sizes and dates), and never
 changes anything. No analytics, no crash reports, no account.
 
@@ -138,9 +154,9 @@ network requests.
 
 Its own files are:
 
-- `~/Library/Application Support/Vault Wallpaper/`: `config.json`, `custom-presets.json` and
+- `~/Library/Application Support/Constellate/`: `config.json`, `custom-presets.json` and
   the cached layout (`layout.json`).
-- `~/Pictures/Vault Wallpaper/`: PNGs you export.
+- `~/Pictures/Constellate/`: PNGs you export.
 
 ## Light on your Mac
 
@@ -153,19 +169,19 @@ within a few seconds.
 ## Uninstall
 
 Quit it from the menu, untick Start at Login first if you turned it on, and move the app to the
-Bin. With Homebrew, `brew uninstall --cask vault-wallpaper` does both (`--zap` also removes
+Bin. With Homebrew, `brew uninstall --cask constellate` does both (`--zap` also removes
 everything below).
 
 To remove its settings and caches too, delete:
 
-- `~/Library/Application Support/Vault Wallpaper/` (settings, layout cache, custom presets)
+- `~/Library/Application Support/Constellate/` (settings, layout cache, custom presets)
 - `~/Library/Caches/com.williamricchiuti.vaultwallpaper/` (including the updater's downloads)
 - `~/Library/Preferences/com.williamricchiuti.vaultwallpaper.plist` (update-check preferences)
 - `~/Library/HTTPStorages/com.williamricchiuti.vaultwallpaper/`,
   `~/Library/WebKit/com.williamricchiuti.vaultwallpaper/` and
   `~/Library/Saved Application State/com.williamricchiuti.vaultwallpaper.savedState/`, if present
 
-Images you exported in `~/Pictures/Vault Wallpaper/` are yours and stay.
+Images you exported in `~/Pictures/Constellate/` are yours and stay.
 
 Licences of the open-source code inside the app are in
 [THIRD-PARTY-NOTICES.txt](THIRD-PARTY-NOTICES.txt), also shipped in the app
@@ -176,9 +192,9 @@ Licences of the open-source code inside the app are in
 Needs Rust (rustup) and the Xcode command line tools.
 
 ```bash
-cargo run --release -p vault-wallpaper -- --vault ~/path/to/vault   # run without bundling
-packaging/build-app.sh                                              # dist/Vault Wallpaper.app (universal)
-packaging/make-dmg.sh                                               # dist/Vault-Wallpaper-<version>.dmg
+cargo run --release -p constellate -- --vault ~/path/to/vault   # run without bundling
+packaging/build-app.sh                                              # dist/Constellate.app (universal)
+packaging/make-dmg.sh                                               # dist/Constellate-<version>.dmg
 cargo test --workspace
 ```
 
