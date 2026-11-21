@@ -261,3 +261,21 @@ fn parity_dump() {
         .collect();
     std::fs::write(std::env::var("VW_CONFIG_OUT").unwrap(), serde_json::to_string(&out).unwrap()).unwrap();
 }
+
+#[test]
+fn app_keys_are_native_and_omitted_while_off() {
+    let text = serde_json::to_value(Config::default()).unwrap();
+    assert!(text.get("hideMenuBarIcon").is_none() && text.get("showInDock").is_none());
+
+    let mut c = Config::default();
+    let keys = c.apply_patch(&json!({ "hideMenuBarIcon": true, "showInDock": true })).unwrap();
+    assert_eq!(keys.len(), 2);
+    assert!(c.hide_menu_bar_icon && c.show_in_dock);
+    let saved = serde_json::to_value(&c).unwrap();
+    assert_eq!(saved["hideMenuBarIcon"], true);
+    assert_eq!(saved["showInDock"], true);
+    assert_eq!(Config::from_json(&saved.to_string()).unwrap().config, c);
+
+    assert!(!patch_ok(json!({ "showInDock": "yes" })));
+    assert!(!patch_ok(json!({ "hideMenuBarIcon": 1 })));
+}

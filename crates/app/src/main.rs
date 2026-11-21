@@ -88,6 +88,8 @@ enum AppEvent {
     /// First run: time to open the folder picker (the sample graph is on screen, or
     /// the fallback timer fired).
     FirstRunPick,
+    /// The app was opened again while running (Finder, Spotlight, the Dock).
+    Reopen,
 }
 
 /// A vault scanned and watched off the main thread.
@@ -832,6 +834,9 @@ impl App {
             engine.set_options(self.cfg.layout_options());
         }
         self.apply_style();
+        if old.hide_menu_bar_icon != self.cfg.hide_menu_bar_icon || old.show_in_dock != self.cfg.show_in_dock {
+            self.apply_app_prefs();
+        }
         if let Some(s) = self.shown.take() {
             let look = self.look_for(&s.graph, &s.layout);
             self.shown = Some(Shown { look, ..s });
@@ -845,6 +850,14 @@ impl App {
             s.config_changed();
         }
         eprintln!("[{:.0} ms] config reloaded", self.ms());
+    }
+
+    /// Settings' "Hide menu-bar icon" and "Show in Dock".
+    fn apply_app_prefs(&self) {
+        if let Some(m) = &self.menu {
+            m.set_visible(!self.cfg.hide_menu_bar_icon);
+        }
+        desktop::set_dock_icon(self.cfg.show_in_dock);
     }
 
     fn apply_style(&mut self) {
@@ -1460,6 +1473,11 @@ impl ApplicationHandler<AppEvent> for App {
         if self.menu.is_none() {
             eprintln!("menu bar icon could not be created");
         }
+        let proxy = self.proxy.clone();
+        desktop::reopen::install(move || {
+            let _ = proxy.send_event(AppEvent::Reopen);
+        });
+        self.apply_app_prefs();
         // Test aid: run the menu's Check for Updates… at launch (scripts can't click a
         // status-item menu). Inert without the updater.
         if std::env::var_os("VW_CHECK_FOR_UPDATES").is_some() {
@@ -1492,6 +1510,10 @@ impl ApplicationHandler<AppEvent> for App {
                 }
             }
             AppEvent::System(e) => self.on_system(e, event_loop),
+            AppEvent::Reopen => {
+                eprintln!("[{:.0} ms] reopened: opening Settings", self.ms());
+                self.on_action(Action::OpenSettings, event_loop);
+            }
             AppEvent::FirstRunPick => {
                 // Once only, and not if a folder was chosen meanwhile (menu, config).
                 if std::mem::take(&mut self.first_run_pick) && self.vault_path().is_none() {

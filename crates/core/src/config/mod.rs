@@ -106,6 +106,14 @@ pub struct Config {
     pub source_kind: SourceKind,
     #[serde(default, skip_serializing_if = "is_default")]
     pub node_size: NodeSize,
+    // App (native only, left out of the file while off)
+    /// Hides the menu-bar icon. Opening the app again (Finder, Spotlight, the Dock)
+    /// opens Settings, where it can be turned back on.
+    #[serde(default, skip_serializing_if = "is_default")]
+    pub hide_menu_bar_icon: bool,
+    /// Shows the app in the Dock and the app switcher (it is a menu-bar app otherwise).
+    #[serde(default, skip_serializing_if = "is_default")]
+    pub show_in_dock: bool,
 }
 
 fn is_default<T: Default + PartialEq>(v: &T) -> bool {
@@ -181,6 +189,8 @@ impl Default for Config {
             idle_fps: 10,
             source_kind: SourceKind::Auto,
             node_size: NodeSize::Links,
+            hide_menu_bar_icon: false,
+            show_in_dock: false,
         }
     }
 }

@@ -91,6 +91,86 @@ pub fn activate() {
     }
 }
 
+/// Shows or hides the Dock icon (and the app in the app switcher). Off, the app is a
+/// menu-bar app, as it starts (`ActivationPolicy::Accessory`).
+pub fn set_dock_icon(show: bool) {
+    use objc2_app_kit::{NSApplication, NSApplicationActivationPolicy};
+    let Some(mtm) = objc2::MainThreadMarker::new() else { return };
+    let app = NSApplication::sharedApplication(mtm);
+    let policy = if show { NSApplicationActivationPolicy::Regular } else { NSApplicationActivationPolicy::Accessory };
+    if app.activationPolicy() != policy && !app.setActivationPolicy(policy) {
+        eprintln!("could not {} the Dock icon", if show { "show" } else { "hide" });
+    }
+}
+
+/// "Reopen": the app was opened again while running (double-clicked in Finder, picked
+/// in Spotlight or Launchpad, or its Dock icon clicked). With the menu-bar icon hidden
+/// it's the only way back in, so the app opens Settings.
+pub mod reopen {
+    use std::sync::Mutex;
+
+    use objc2::rc::Retained;
+    use objc2::runtime::{NSObject, NSObjectProtocol};
+    use objc2::{MainThreadMarker, MainThreadOnly, define_class, msg_send, sel};
+    use objc2_foundation::{NSAppleEventDescriptor, NSAppleEventManager};
+
+    /// `kCoreEventClass` ('aevt') and `kAEReopenApplication` ('rapp').
+    const CORE_EVENT_CLASS: u32 = u32::from_be_bytes(*b"aevt");
+    const REOPEN_APPLICATION: u32 = u32::from_be_bytes(*b"rapp");
+
+    static ON_REOPEN: Mutex<Option<Box<dyn Fn() + Send>>> = Mutex::new(None);
+
+    define_class!(
+        /// Receives the reopen Apple event. This vendored winit registers its own app
+        /// delegate (replacing it panics), so the event is taken directly instead of
+        /// through `applicationShouldHandleReopen:hasVisibleWindows:`.
+        #[unsafe(super(NSObject))]
+        #[thread_kind = MainThreadOnly]
+        #[name = "VWReopenHandler"]
+        struct Handler;
+
+        unsafe impl NSObjectProtocol for Handler {}
+
+        impl Handler {
+            #[unsafe(method(handleReopen:withReplyEvent:))]
+            fn handle_reopen(&self, _event: &NSAppleEventDescriptor, _reply: &NSAppleEventDescriptor) {
+                if let Ok(f) = ON_REOPEN.lock()
+                    && let Some(f) = f.as_ref()
+                {
+                    f();
+                }
+            }
+        }
+    );
+
+    /// Calls `on_reopen` on each reopen. Call once, on the main thread, after the app has
+    /// finished launching (AppKit installs its own handlers while launching).
+    pub fn install(on_reopen: impl Fn() + Send + 'static) {
+        let Some(mtm) = MainThreadMarker::new() else { return };
+        if let Ok(mut f) = ON_REOPEN.lock() {
+            *f = Some(Box::new(on_reopen));
+        }
+        // SAFETY: plain NSObject subclass with no ivars; -init is NSObject's.
+        let handler: Retained<Handler> = unsafe { msg_send![Handler::alloc(mtm), init] };
+        let manager = NSAppleEventManager::sharedAppleEventManager();
+        // SAFETY: -setEventHandler:andSelector:forEventClass:andEventID: takes an object,
+        // a selector and two FourCharCodes (u32). The selector exists on `handler` with
+        // the signature the event manager calls (two NSAppleEventDescriptors, no return).
+        // Called directly: objc2-foundation's binding needs the CoreServices crate.
+        let () = unsafe {
+            msg_send![
+                &*manager,
+                setEventHandler: &*handler,
+                andSelector: sel!(handleReopen:withReplyEvent:),
+                forEventClass: CORE_EVENT_CLASS,
+                andEventID: REOPEN_APPLICATION
+            ]
+        };
+        // The event manager doesn't retain its handlers; this one lives as long as the app.
+        std::mem::forget(handler);
+    }
+}
+
 /// A start-up failure the app can't recover from: logs it, shows it in an alert (so
 /// someone who launched the app from Finder sees why nothing appeared) and exits 1.
 ///

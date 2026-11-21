@@ -288,6 +288,11 @@
       </div>
     </section>
 
+    <section class="group" aria-labelledby="h-app">
+      <h2 id="h-app">App</h2>
+      <div class="card" data-fields="app"></div>
+    </section>
+
     <section class="group" aria-labelledby="h-perf">
       <h2 id="h-perf">Performance</h2>
       <div class="card" data-fields="performance"></div>
@@ -408,6 +413,10 @@ const GROUPS = {
     { k: 'sourceKind', t: 'select', def: 'auto', label: 'Read as', hint: 'How the folder is read. Changing it reads the folder again.', opts: [['auto', 'Detect automatically'], ['obsidian', 'Obsidian vault'], ['notes', 'Markdown or org notes'], ['logseq', 'Logseq graph'], ['dendron', 'Dendron workspace'], ['folder', 'Any folder']] },
     { k: 'nodeSize', t: 'select', def: 'links', label: 'Node size', hint: 'Size nodes by their links or by bytes on disk', opts: [['links', 'Links'], ['fileSize', 'File size']] },
     { k: 'showUnresolvedLinks', t: 'toggle', label: 'Unresolved links', hint: "Ghost nodes for [[links]] to notes that don't exist yet" }
+  ],
+  app: [
+    { k: 'showInDock', t: 'toggle', label: 'Show in Dock', hint: 'Also show Constellate in the Dock and the app switcher' },
+    { k: 'hideMenuBarIcon', t: 'toggle', label: 'Hide menu-bar icon', hint: 'To get back here, open Constellate again from Applications or Spotlight: Settings opens.' }
   ],
   performance: [
     { k: 'renderer', web: true, t: 'select', label: 'Renderer', hint: 'Auto picks WebGL when available', opts: [['auto', 'Auto'], ['canvas', 'Canvas 2D'], ['webgl', 'WebGL']] },
@@ -765,11 +774,13 @@ $('presets').addEventListener('click', async e => {
   if (p) save(presetPatch(p));
 });
 
-// Keys worth carrying in a preset: everything except folder-specific data.
+// Keys worth carrying in a preset: everything except folder-specific data and the app's
+// Dock and menu-bar choices.
 function presetConfigFrom(c) {
   const out = {};
   for (const [k, v] of Object.entries(c || {})) {
-    if (k === 'tagColors' || k === 'ignorePaths' || k === 'sourceKind' || k === 'nodeSize') continue;
+    if (k === 'tagColors' || k === 'ignorePaths' || k === 'sourceKind' || k === 'nodeSize' ||
+        k === 'hideMenuBarIcon' || k === 'showInDock') continue;
     out[k] = k === 'labelStyle' ? cleanNested(k, v) : v;
   }
   return out;

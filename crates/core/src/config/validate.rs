@@ -135,6 +135,8 @@ const RULES: &[(&str, Rule)] = &[
     // Native only (the web version rejects them as unknown, like the native themes).
     ("sourceKind", Enum(SOURCE_KINDS)),
     ("nodeSize", Enum(NODE_SIZES)),
+    ("hideMenuBarIcon", Bool),
+    ("showInDock", Bool),
 ];
 
 /// Web-only keys still in `VALIDATORS`: checked so accept/reject matches, then dropped.

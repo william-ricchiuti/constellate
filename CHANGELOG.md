@@ -21,6 +21,8 @@ All notable changes to Constellate (called Vault Wallpaper up to 1.0.0-beta.1). 
   folder has more), `node_modules`, build folders, caches and `~/Library` skipped, and iCloud
   placeholders skipped without being downloaded.
 - A built-in sample graph shows while no folder is chosen.
+- Settings → App: **Show in Dock** and **Hide menu-bar icon**. Opening the app again while
+  it runs (Finder, Spotlight, the Dock) opens Settings, so a hidden icon is never a dead end.
 
 ### Changed
 

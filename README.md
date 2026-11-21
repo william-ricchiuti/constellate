@@ -18,7 +18,7 @@ the menu bar: no browser, no Node, no local server, no wallpaper host app.
    [Releases](https://github.com/william-ricchiuti/constellate/releases).
 2. Open it and drag **Constellate** to **Applications**.
 3. Open Constellate from Applications. A small graph icon (three linked dots) appears in
-   the menu bar. The app has no Dock icon.
+   the menu bar. The app has no Dock icon unless you turn on **Show in Dock** in Settings.
 
 ### With Homebrew
 
@@ -105,6 +105,10 @@ menu to bring your old `config.json` and custom presets over. See
 | Open Config File | Opens `config.json` in your text editor; edits apply when you save. |
 | Start at Login | Opens Constellate when you log in. |
 | Check for Updates… | Looks for a newer version now (DMG and Homebrew installs; the App Store updates its own copy). |
+
+Settings → App has **Show in Dock** (adds a Dock icon) and **Hide menu-bar icon**. With the
+icon hidden, open Constellate again from Applications or Spotlight (or click its Dock icon)
+and Settings opens, where you can turn the icon back on.
 
 ## Themes
 

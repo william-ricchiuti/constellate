@@ -77,6 +77,13 @@ impl AppMenu {
         self.pause.set_checked(paused);
     }
 
+    /// Shows or hides the menu-bar icon (Settings' "Hide menu-bar icon").
+    pub fn set_visible(&self, visible: bool) {
+        if let Err(e) = self._tray.set_visible(visible) {
+            eprintln!("menu bar icon: {e}");
+        }
+    }
+
     pub fn set_login(&self, on: bool) {
         self.login.set_checked(on);
     }
