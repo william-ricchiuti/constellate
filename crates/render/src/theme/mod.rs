@@ -21,10 +21,10 @@ mod pulse;
 use vw_core::config::Config;
 use vw_core::layout::LayoutGraph;
 
-use crate::Framing;
 use crate::burst::{BurstActor, EditBurst};
 use crate::look::Look;
 use crate::scene::{SceneData, SceneStyle, build_scene, style_from_config};
+use crate::Framing;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum Theme {
@@ -47,11 +47,7 @@ pub enum Ambient {
     None,
     /// The glow layer's opacity eases between 1 and `1 - depth` and back every
     /// `period` seconds, at no more than `fps` frames per second.
-    Breathe {
-        depth: f32,
-        period: f32,
-        fps: f32,
-    },
+    Breathe { depth: f32, period: f32, fps: f32 },
 }
 
 impl Theme {
@@ -105,11 +101,7 @@ impl Theme {
             return Ambient::None;
         }
         match style.breathing {
-            Some((depth, period)) => Ambient::Breathe {
-                depth,
-                period,
-                fps: style.motion_fps,
-            },
+            Some((depth, period)) => Ambient::Breathe { depth, period, fps: style.motion_fps },
             None => Ambient::None,
         }
     }
@@ -119,17 +111,9 @@ impl Theme {
     pub fn edit_burst(self, cfg: &Config) -> Option<EditBurst> {
         let fps = burst_fps(cfg)?;
         match self {
-            Theme::InkPaper => Some(EditBurst {
-                duration: 2.0,
-                fps,
-                resolution: 1.0,
-            }),
+            Theme::InkPaper => Some(EditBurst { duration: 2.0, fps, resolution: 1.0 }),
             // Soft light: baked at half resolution, scaled up by the window server.
-            Theme::Pulse => Some(EditBurst {
-                duration: pulse::DURATION,
-                fps,
-                resolution: 0.5,
-            }),
+            Theme::Pulse => Some(EditBurst { duration: pulse::DURATION, fps, resolution: 0.5 }),
             Theme::Default | Theme::NightSky | Theme::AuroraLite => None,
         }
     }
@@ -146,9 +130,7 @@ impl Theme {
         burst: &EditBurst,
     ) -> Vec<BurstActor> {
         match self {
-            Theme::InkPaper => {
-                ink_paper::burst_actors(graph, look, positions, framing, node, burst)
-            }
+            Theme::InkPaper => ink_paper::burst_actors(graph, look, positions, framing, node, burst),
             Theme::Pulse => pulse::burst_actors(graph, look, positions, framing, node, burst),
             Theme::Default | Theme::NightSky | Theme::AuroraLite => Vec::new(),
         }

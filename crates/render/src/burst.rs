@@ -95,31 +95,14 @@ pub struct BurstActor {
 
 impl BurstActor {
     /// A still actor at `at`, fully opaque for the whole burst (its frames do the work).
-    pub fn fixed(
-        kind: BurstKind,
-        sprite: BurstInstance,
-        frames: u32,
-        play: [f32; 2],
-        at: [f32; 2],
-    ) -> Self {
+    pub fn fixed(kind: BurstKind, sprite: BurstInstance, frames: u32, play: [f32; 2], at: [f32; 2]) -> Self {
         BurstActor {
             kind,
             sprite,
             frames,
             play,
             angle: 0.0,
-            keys: vec![
-                BurstKey {
-                    t: 0.0,
-                    at,
-                    opacity: 1.0,
-                },
-                BurstKey {
-                    t: 1.0,
-                    at,
-                    opacity: 1.0,
-                },
-            ],
+            keys: vec![BurstKey { t: 0.0, at, opacity: 1.0 }, BurstKey { t: 1.0, at, opacity: 1.0 }],
         }
     }
 
@@ -130,23 +113,14 @@ impl BurstActor {
 
     /// Position and opacity at `t`, interpolated between keys.
     pub fn at(&self, t: f32) -> ([f32; 2], f32) {
-        let Some(first) = self.keys.first() else {
-            return ([0.0; 2], 0.0);
-        };
+        let Some(first) = self.keys.first() else { return ([0.0; 2], 0.0) };
         let mut prev = *first;
         for k in &self.keys {
             if t <= k.t {
                 let span = k.t - prev.t;
-                let f = if span > 0.0 {
-                    ((t - prev.t) / span).clamp(0.0, 1.0)
-                } else {
-                    1.0
-                };
+                let f = if span > 0.0 { ((t - prev.t) / span).clamp(0.0, 1.0) } else { 1.0 };
                 let lerp = |a: f32, b: f32| a + (b - a) * f;
-                return (
-                    [lerp(prev.at[0], k.at[0]), lerp(prev.at[1], k.at[1])],
-                    lerp(prev.opacity, k.opacity),
-                );
+                return ([lerp(prev.at[0], k.at[0]), lerp(prev.at[1], k.at[1])], lerp(prev.opacity, k.opacity));
             }
             prev = *k;
         }
@@ -159,11 +133,7 @@ impl BurstActor {
             return 0;
         }
         let [t0, t1] = self.play;
-        let f = if t1 > t0 {
-            ((t - t0) / (t1 - t0)).clamp(0.0, 1.0)
-        } else {
-            1.0
-        };
+        let f = if t1 > t0 { ((t - t0) / (t1 - t0)).clamp(0.0, 1.0) } else { 1.0 };
         ((f * (self.frames - 1) as f32).floor() as u32).min(self.frames - 1)
     }
 }
@@ -204,16 +174,8 @@ const ATLAS_WIDTH: u32 = 2048;
 fn pack(actors: &[BurstActor], scale: f32) -> (Vec<([u32; 2], u32)>, [u32; 2]) {
     // One pixel of clear border around every frame, so linear filtering at a frame's
     // edge never reads its neighbour.
-    let cells: Vec<u32> = actors
-        .iter()
-        .map(|a| (a.side() * scale).ceil() as u32 + 2)
-        .collect();
-    let widest = actors
-        .iter()
-        .zip(&cells)
-        .map(|(a, c)| c * a.frames.max(1))
-        .max()
-        .unwrap_or(1);
+    let cells: Vec<u32> = actors.iter().map(|a| (a.side() * scale).ceil() as u32 + 2).collect();
+    let widest = actors.iter().zip(&cells).map(|(a, c)| c * a.frames.max(1)).max().unwrap_or(1);
     let width = ATLAS_WIDTH.max(widest);
     let (mut x, mut y, mut row_h, mut w_used) = (0u32, 0u32, 0u32, 1u32);
     let mut out = Vec::with_capacity(actors.len());
@@ -241,12 +203,7 @@ struct BurstUniforms {
     _pad: [f32; 3],
 }
 
-const KINDS: [BurstKind; 4] = [
-    BurstKind::InkBleed,
-    BurstKind::PulseRing,
-    BurstKind::PulseComet,
-    BurstKind::PulseGlint,
-];
+const KINDS: [BurstKind; 4] = [BurstKind::InkBleed, BurstKind::PulseRing, BurstKind::PulseComet, BurstKind::PulseGlint];
 
 /// Bakes bursts. Create it the first time a burst runs: until then a wallpaper
 /// pays nothing for it.
@@ -316,21 +273,12 @@ impl BurstRenderer {
                 (k, pipeline(fs))
             })
             .collect();
-        BurstRenderer {
-            pipelines,
-            layout,
-            buf: None,
-        }
+        BurstRenderer { pipelines, layout, buf: None }
     }
 
     /// Draws every frame of every actor into one atlas at `scale` pixels per point,
     /// in one render pass, and reads it back. `None` when there is nothing to bake.
-    pub fn bake(
-        &mut self,
-        gpu: &crate::Gpu,
-        actors: &[BurstActor],
-        scale: f32,
-    ) -> Option<BakedBurst> {
+    pub fn bake(&mut self, gpu: &crate::Gpu, actors: &[BurstActor], scale: f32) -> Option<BakedBurst> {
         if actors.is_empty() {
             return None;
         }
@@ -347,27 +295,15 @@ impl BurstRenderer {
                 for k in 0..n {
                     let cx = origin[0] as f32 + (k * cell) as f32 + cell as f32 * 0.5;
                     let cy = origin[1] as f32 + cell as f32 * 0.5;
-                    let progress = if n > 1 {
-                        k as f32 / (n - 1) as f32
-                    } else {
-                        a.sprite.progress
-                    };
-                    instances.push(BurstInstance {
-                        center: [cx / scale, cy / scale],
-                        progress,
-                        ..a.sprite
-                    });
+                    let progress = if n > 1 { k as f32 / (n - 1) as f32 } else { a.sprite.progress };
+                    instances.push(BurstInstance { center: [cx / scale, cy / scale], progress, ..a.sprite });
                 }
             }
             ranges.push((kind, start..instances.len() as u32));
         }
         let texture = gpu.device.create_texture(&wgpu::TextureDescriptor {
             label: Some("burst atlas"),
-            size: wgpu::Extent3d {
-                width: size[0],
-                height: size[1],
-                depth_or_array_layers: 1,
-            },
+            size: wgpu::Extent3d { width: size[0], height: size[1], depth_or_array_layers: 1 },
             mip_level_count: 1,
             sample_count: 1,
             dimension: wgpu::TextureDimension::D2,
@@ -376,19 +312,11 @@ impl BurstRenderer {
             view_formats: &[],
         });
         let points = [size[0] as f32 / scale, size[1] as f32 / scale];
-        let u = BurstUniforms {
-            origin: [0.0; 2],
-            size: points,
-            scale,
-            _pad: [0.0; 3],
-        };
+        let u = BurstUniforms { origin: [0.0; 2], size: points, scale, _pad: [0.0; 3] };
         let bind = gpu.device.create_bind_group(&wgpu::BindGroupDescriptor {
             label: None,
             layout: &self.layout,
-            entries: &[wgpu::BindGroupEntry {
-                binding: 0,
-                resource: crate::uniform_with(gpu, "burst uniforms", &u).as_entire_binding(),
-            }],
+            entries: &[wgpu::BindGroupEntry { binding: 0, resource: crate::uniform_with(gpu, "burst uniforms", &u).as_entire_binding() }],
         });
         crate::instance_buffer(gpu, &mut self.buf, &instances, "burst sprites");
         let view = texture.create_view(&Default::default());
@@ -399,12 +327,7 @@ impl BurstRenderer {
             if let Some(buf) = &self.buf {
                 pass.set_vertex_buffer(0, buf.slice(..));
                 for (kind, range) in ranges.into_iter().filter(|(_, r)| !r.is_empty()) {
-                    let pipeline = &self
-                        .pipelines
-                        .iter()
-                        .find(|(k, _)| *k == kind)
-                        .expect("a pipeline per kind")
-                        .1;
+                    let pipeline = &self.pipelines.iter().find(|(k, _)| *k == kind).expect("a pipeline per kind").1;
                     pass.set_pipeline(pipeline);
                     pass.draw(0..6, range);
                 }
@@ -415,18 +338,9 @@ impl BurstRenderer {
         let actors = actors
             .iter()
             .zip(placed)
-            .map(|(a, (origin, cell))| BakedActor {
-                actor: a.clone(),
-                origin,
-                cell,
-            })
+            .map(|(a, (origin, cell))| BakedActor { actor: a.clone(), origin, cell })
             .collect();
-        Some(BakedBurst {
-            rgba,
-            size,
-            scale,
-            actors,
-        })
+        Some(BakedBurst { rgba, size, scale, actors })
     }
 }
 
@@ -464,21 +378,17 @@ pub fn composite_at(baked: &BakedBurst, t: f32, screen: [u32; 2], scale: f32) ->
                 if px < 0.0 || py < 0.0 || px >= b.cell as f32 || py >= b.cell as f32 {
                     continue;
                 }
-                let src =
-                    (((b.origin[1] + py as u32) * baked.size[0] + fx + px as u32) * 4) as usize;
+                let src = (((b.origin[1] + py as u32) * baked.size[0] + fx + px as u32) * 4) as usize;
                 let dst = ((y * screen[0] + x) * 4) as usize;
                 let sa = f32::from(baked.rgba[src + 3]) / 255.0 * opacity;
                 for k in 0..3 {
-                    out[dst + k] = f32::from(baked.rgba[src + k]) / 255.0 * opacity
-                        + out[dst + k] * (1.0 - sa);
+                    out[dst + k] = f32::from(baked.rgba[src + k]) / 255.0 * opacity + out[dst + k] * (1.0 - sa);
                 }
                 out[dst + 3] = sa + out[dst + 3] * (1.0 - sa);
             }
         }
     }
-    out.iter()
-        .map(|v| (v.clamp(0.0, 1.0) * 255.0).round() as u8)
-        .collect()
+    out.iter().map(|v| (v.clamp(0.0, 1.0) * 255.0).round() as u8).collect()
 }
 
 #[cfg(test)]
@@ -486,40 +396,16 @@ mod tests {
     use super::*;
 
     fn sprite(kind_reach: f32) -> BurstInstance {
-        BurstInstance {
-            center: [0.0; 2],
-            core: 4.0,
-            reach: kind_reach,
-            color: [0.1, 0.1, 0.1, 0.9],
-            progress: 0.0,
-        }
+        BurstInstance { center: [0.0; 2], core: 4.0, reach: kind_reach, color: [0.1, 0.1, 0.1, 0.9], progress: 0.0 }
     }
 
     #[test]
     fn keys_interpolate_and_frames_step() {
-        let mut a = BurstActor::fixed(
-            BurstKind::InkBleed,
-            sprite(22.0),
-            5,
-            [0.0, 0.8],
-            [10.0, 20.0],
-        );
+        let mut a = BurstActor::fixed(BurstKind::InkBleed, sprite(22.0), 5, [0.0, 0.8], [10.0, 20.0]);
         a.keys = vec![
-            BurstKey {
-                t: 0.0,
-                at: [0.0, 0.0],
-                opacity: 0.0,
-            },
-            BurstKey {
-                t: 0.5,
-                at: [10.0, 0.0],
-                opacity: 1.0,
-            },
-            BurstKey {
-                t: 1.0,
-                at: [10.0, 0.0],
-                opacity: 0.0,
-            },
+            BurstKey { t: 0.0, at: [0.0, 0.0], opacity: 0.0 },
+            BurstKey { t: 0.5, at: [10.0, 0.0], opacity: 1.0 },
+            BurstKey { t: 1.0, at: [10.0, 0.0], opacity: 0.0 },
         ];
         assert_eq!(a.at(0.25), ([5.0, 0.0], 0.5));
         assert_eq!(a.at(1.0).1, 0.0);
@@ -530,30 +416,13 @@ mod tests {
 
     #[test]
     fn packing_keeps_strips_apart() {
-        let actors: Vec<_> = (0..40)
-            .map(|i| {
-                BurstActor::fixed(
-                    BurstKind::PulseGlint,
-                    sprite(10.0 + i as f32),
-                    1 + i % 7,
-                    [0.0, 1.0],
-                    [0.0; 2],
-                )
-            })
-            .collect();
+        let actors: Vec<_> = (0..40).map(|i| BurstActor::fixed(BurstKind::PulseGlint, sprite(10.0 + i as f32), 1 + i % 7, [0.0, 1.0], [0.0; 2])).collect();
         let (placed, size) = pack(&actors, 2.0);
-        let rects: Vec<[u32; 4]> = actors
-            .iter()
-            .zip(&placed)
-            .map(|(a, (o, c))| [o[0], o[1], c * a.frames, *c])
-            .collect();
+        let rects: Vec<[u32; 4]> = actors.iter().zip(&placed).map(|(a, (o, c))| [o[0], o[1], c * a.frames, *c]).collect();
         for (i, a) in rects.iter().enumerate() {
             assert!(a[0] + a[2] <= size[0] && a[1] + a[3] <= size[1]);
             for b in &rects[i + 1..] {
-                let apart = a[0] + a[2] <= b[0]
-                    || b[0] + b[2] <= a[0]
-                    || a[1] + a[3] <= b[1]
-                    || b[1] + b[3] <= a[1];
+                let apart = a[0] + a[2] <= b[0] || b[0] + b[2] <= a[0] || a[1] + a[3] <= b[1] || b[1] + b[3] <= a[1];
                 assert!(apart, "{a:?} overlaps {b:?}");
             }
         }
@@ -570,13 +439,9 @@ mod tests {
         let mut sum = 0;
         for y in 0..a.cell {
             for x in 0..a.cell {
-                let d = ((x as f32 + 0.5 - a.cell as f32 * 0.5).powi(2)
-                    + (y as f32 + 0.5 - a.cell as f32 * 0.5).powi(2))
-                .sqrt()
-                    / b.scale;
+                let d = ((x as f32 + 0.5 - a.cell as f32 * 0.5).powi(2) + (y as f32 + 0.5 - a.cell as f32 * 0.5).powi(2)).sqrt() / b.scale;
                 if d >= r0 && d < r1 {
-                    let i = (((a.origin[1] + y) * b.size[0] + a.origin[0] + frame * a.cell + x) * 4
-                        + 3) as usize;
+                    let i = (((a.origin[1] + y) * b.size[0] + a.origin[0] + frame * a.cell + x) * 4 + 3) as usize;
                     sum += u64::from(b.rgba[i]);
                 }
             }
@@ -590,13 +455,7 @@ mod tests {
             eprintln!("no GPU adapter; skipping");
             return;
         };
-        let actor = BurstActor::fixed(
-            BurstKind::InkBleed,
-            sprite(22.0),
-            5,
-            [0.0, 1.0],
-            [50.0, 40.0],
-        );
+        let actor = BurstActor::fixed(BurstKind::InkBleed, sprite(22.0), 5, [0.0, 1.0], [50.0, 40.0]);
         let baked = BurstRenderer::new(&gpu).bake(&gpu, &[actor], 2.0).unwrap();
         // At the start the ink is on the dot, not yet out in the paper.
         assert!(ring_alpha(&baked, 0, 0, 0.0, 4.0) > 0);
@@ -609,13 +468,8 @@ mod tests {
 
     #[test]
     fn pulse_sprites_bake() {
-        let Some(gpu) = crate::Gpu::headless() else {
-            return;
-        };
-        let glow = BurstInstance {
-            color: [0.9, 0.85, 0.7, 1.0],
-            ..sprite(16.0)
-        };
+        let Some(gpu) = crate::Gpu::headless() else { return };
+        let glow = BurstInstance { color: [0.9, 0.85, 0.7, 1.0], ..sprite(16.0) };
         let actors = [
             BurstActor::fixed(BurstKind::PulseRing, glow, 6, [0.0, 0.5], [0.0; 2]),
             BurstActor::fixed(BurstKind::PulseComet, glow, 1, [0.0, 1.0], [0.0; 2]),
@@ -630,11 +484,7 @@ mod tests {
         let a = &baked.actors[1];
         let px = |x: f32| {
             let c = a.cell as f32 * 0.5;
-            let i = (((a.origin[1] + c as u32) * baked.size[0]
-                + a.origin[0]
-                + (c + x * baked.scale) as u32)
-                * 4
-                + 3) as usize;
+            let i = (((a.origin[1] + c as u32) * baked.size[0] + a.origin[0] + (c + x * baked.scale) as u32) * 4 + 3) as usize;
             baked.rgba[i]
         };
         assert!(px(0.0) > 150);
@@ -650,39 +500,13 @@ mod tests {
     #[test]
     #[ignore]
     fn burst_bake_cost() {
-        let Some(gpu) = crate::Gpu::headless() else {
-            return;
-        };
+        let Some(gpu) = crate::Gpu::headless() else { return };
         let mut r = BurstRenderer::new(&gpu);
-        let glow = BurstInstance {
-            color: [0.9, 0.85, 0.7, 1.0],
-            ..sprite(16.0)
-        };
-        let mut actors = vec![BurstActor::fixed(
-            BurstKind::PulseRing,
-            BurstInstance {
-                reach: 36.0,
-                ..glow
-            },
-            12,
-            [0.0, 0.45],
-            [0.0; 2],
-        )];
-        actors.extend(
-            (0..56)
-                .map(|_| BurstActor::fixed(BurstKind::PulseComet, glow, 1, [0.0, 1.0], [0.0; 2])),
-        );
-        actors.extend(
-            (0..56)
-                .map(|_| BurstActor::fixed(BurstKind::PulseGlint, glow, 1, [0.0, 1.0], [0.0; 2])),
-        );
-        let ink = vec![BurstActor::fixed(
-            BurstKind::InkBleed,
-            sprite(30.0),
-            25,
-            [0.0, 0.97],
-            [0.0; 2],
-        )];
+        let glow = BurstInstance { color: [0.9, 0.85, 0.7, 1.0], ..sprite(16.0) };
+        let mut actors = vec![BurstActor::fixed(BurstKind::PulseRing, BurstInstance { reach: 36.0, ..glow }, 12, [0.0, 0.45], [0.0; 2])];
+        actors.extend((0..56).map(|_| BurstActor::fixed(BurstKind::PulseComet, glow, 1, [0.0, 1.0], [0.0; 2])));
+        actors.extend((0..56).map(|_| BurstActor::fixed(BurstKind::PulseGlint, glow, 1, [0.0, 1.0], [0.0; 2])));
+        let ink = vec![BurstActor::fixed(BurstKind::InkBleed, sprite(30.0), 25, [0.0, 0.97], [0.0; 2])];
         for (name, actors, scale) in [("pulse", actors, 1.0), ("ink bleed", ink, 2.0)] {
             let n = 50;
             let t = std::time::Instant::now();
@@ -691,11 +515,7 @@ mod tests {
                 bytes = r.bake(&gpu, &actors, scale).unwrap().bytes();
             }
             let ms = t.elapsed().as_secs_f64() * 1000.0 / f64::from(n);
-            eprintln!(
-                "{name}: bake {ms:.2} ms, atlas {} KB, {} actors",
-                bytes / 1024,
-                actors.len()
-            );
+            eprintln!("{name}: bake {ms:.2} ms, atlas {} KB, {} actors", bytes / 1024, actors.len());
         }
     }
 }

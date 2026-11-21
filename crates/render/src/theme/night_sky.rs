@@ -20,12 +20,8 @@ const TEMPERATURES: [[f32; 3]; 5] = [
 ];
 
 fn temperature(tag: Option<&str>) -> [f32; 3] {
-    let Some(tag) = tag else {
-        return TEMPERATURES[0];
-    };
-    let h = tag.bytes().fold(2_166_136_261u32, |h, b| {
-        (h ^ u32::from(b)).wrapping_mul(16_777_619)
-    });
+    let Some(tag) = tag else { return TEMPERATURES[0] };
+    let h = tag.bytes().fold(2_166_136_261u32, |h, b| (h ^ u32::from(b)).wrapping_mul(16_777_619));
     TEMPERATURES[(h % TEMPERATURES.len() as u32) as usize]
 }
 
@@ -44,9 +40,7 @@ pub(super) fn style(cfg: &Config, base: SceneStyle) -> SceneStyle {
         halos: false,
         depth_of_field: false,
         breathing,
-        motion_fps: base
-            .motion_fps
-            .max(if breathing.is_some() { 6.0 } else { 0.0 }),
+        motion_fps: base.motion_fps.max(if breathing.is_some() { 6.0 } else { 0.0 }),
         labels: base.labels,
         label_font: FontFamily::Serif,
         label_style: TextStyle::Minimal,
@@ -73,13 +67,7 @@ pub(super) fn build(
     // Constellations: only links between notes of the same tag, faint and thin.
     for &(s, t) in &graph.links {
         let (s, t) = (s as usize, t as usize);
-        if s >= n
-            || t >= n
-            || graph.tag[s].is_none()
-            || graph.tag[s] != graph.tag[t]
-            || !visible(s)
-            || !visible(t)
-        {
+        if s >= n || t >= n || graph.tag[s].is_none() || graph.tag[s] != graph.tag[t] || !visible(s) || !visible(t) {
             continue;
         }
         let i = imp(s).max(imp(t));
@@ -98,30 +86,14 @@ pub(super) fn build(
         let [r, g, b] = temperature(graph.tag[i].as_deref());
         let p = imp(i);
         if graph.ghost[i] {
-            data.nodes.push(NodeInstance {
-                center: screen[i],
-                radius: 0.6,
-                color: [r, g, b, 0.25],
-            });
+            data.nodes.push(NodeInstance { center: screen[i], radius: 0.6, color: [r, g, b, 0.25] });
             continue;
         }
         let core = 0.7 + p.sqrt() * 2.6;
-        data.nodes.push(NodeInstance {
-            center: screen[i],
-            radius: core,
-            color: [r, g, b, 0.75 + p * 0.25],
-        });
-        data.glow.push(NodeInstance {
-            center: screen[i],
-            radius: core * 4.0 + 3.0,
-            color: [r, g, b, 0.10 + p * 0.35],
-        });
+        data.nodes.push(NodeInstance { center: screen[i], radius: core, color: [r, g, b, 0.75 + p * 0.25] });
+        data.glow.push(NodeInstance { center: screen[i], radius: core * 4.0 + 3.0, color: [r, g, b, 0.10 + p * 0.35] });
         if p > 0.22 {
-            data.stars.push(NodeInstance {
-                center: screen[i],
-                radius: 8.0 + p * 26.0,
-                color: [r, g, b, 0.55 + p * 0.4],
-            });
+            data.stars.push(NodeInstance { center: screen[i], radius: 8.0 + p * 26.0, color: [r, g, b, 0.55 + p * 0.4] });
         }
     }
 

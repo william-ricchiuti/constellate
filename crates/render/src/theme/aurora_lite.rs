@@ -35,17 +35,11 @@ const RANK_ORDER: [usize; 8] = [0, 2, 1, 3, 2, 4, 1, 0];
 const MAX_CURTAINS: usize = 7;
 
 fn hash(s: &str) -> u32 {
-    s.bytes().fold(2_166_136_261u32, |h, b| {
-        (h ^ u32::from(b)).wrapping_mul(16_777_619)
-    })
+    s.bytes().fold(2_166_136_261u32, |h, b| (h ^ u32::from(b)).wrapping_mul(16_777_619))
 }
 
 fn mix(a: [f32; 3], b: [f32; 3], t: f32) -> [f32; 3] {
-    [
-        a[0] + (b[0] - a[0]) * t,
-        a[1] + (b[1] - a[1]) * t,
-        a[2] + (b[2] - a[2]) * t,
-    ]
+    [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t]
 }
 
 pub(super) fn style(cfg: &Config, base: SceneStyle) -> SceneStyle {
@@ -63,9 +57,7 @@ pub(super) fn style(cfg: &Config, base: SceneStyle) -> SceneStyle {
         halos: false,
         depth_of_field: false,
         breathing,
-        motion_fps: base
-            .motion_fps
-            .max(if breathing.is_some() { 6.0 } else { 0.0 }),
+        motion_fps: base.motion_fps.max(if breathing.is_some() { 6.0 } else { 0.0 }),
         labels: base.labels,
         label_font: FontFamily::Sans,
         label_style: TextStyle::Minimal,
@@ -86,56 +78,29 @@ struct Cluster {
 
 /// Tag clusters of three or more visible notes, biggest first. Grouped by tag here
 /// rather than from the look's halo groups, which big vaults turn off.
-fn clusters<'g>(
-    graph: &'g LayoutGraph,
-    screen: &[[f32; 2]],
-    visible: &dyn Fn(usize) -> bool,
-) -> (Vec<Cluster>, HashMap<&'g str, usize>) {
+fn clusters<'g>(graph: &'g LayoutGraph, screen: &[[f32; 2]], visible: &dyn Fn(usize) -> bool) -> (Vec<Cluster>, HashMap<&'g str, usize>) {
     // count, sum x, sum y, sum x², sum y²
     let mut acc: HashMap<&'g str, (f32, f32, f32, f32, f32)> = HashMap::new();
     for (i, p) in screen.iter().enumerate() {
-        let Some(tag) = graph.tag[i].as_deref() else {
-            continue;
-        };
+        let Some(tag) = graph.tag[i].as_deref() else { continue };
         if graph.ghost[i] || !visible(i) {
             continue;
         }
         let a = acc.entry(tag).or_default();
-        *a = (
-            a.0 + 1.0,
-            a.1 + p[0],
-            a.2 + p[1],
-            a.3 + p[0] * p[0],
-            a.4 + p[1] * p[1],
-        );
+        *a = (a.0 + 1.0, a.1 + p[0], a.2 + p[1], a.3 + p[0] * p[0], a.4 + p[1] * p[1]);
     }
     let mut out: Vec<(&'g str, Cluster)> = acc
         .into_iter()
         .filter(|(_, a)| a.0 >= 3.0)
         .map(|(tag, (c, sx, sy, sxx, syy))| {
             let mean = [sx / c, sy / c];
-            let spread = [
-                (sxx / c - mean[0] * mean[0]).max(0.0).sqrt(),
-                (syy / c - mean[1] * mean[1]).max(0.0).sqrt(),
-            ];
-            (
-                tag,
-                Cluster {
-                    tag_hash: hash(tag),
-                    count: c,
-                    mean,
-                    spread,
-                },
-            )
+            let spread = [(sxx / c - mean[0] * mean[0]).max(0.0).sqrt(), (syy / c - mean[1] * mean[1]).max(0.0).sqrt()];
+            (tag, Cluster { tag_hash: hash(tag), count: c, mean, spread })
         })
         .collect();
     // Biggest first; ties broken by name so the order is stable.
     out.sort_by(|a, b| b.1.count.total_cmp(&a.1.count).then_with(|| a.0.cmp(b.0)));
-    let rank = out
-        .iter()
-        .enumerate()
-        .map(|(k, (tag, _))| (*tag, k))
-        .collect();
+    let rank = out.iter().enumerate().map(|(k, (tag, _))| (*tag, k)).collect();
     (out.into_iter().map(|(_, c)| c).collect(), rank)
 }
 
@@ -150,17 +115,9 @@ fn halves(pts: &[[f32; 2]]) -> Vec<Cluster> {
     let side = |left: bool| {
         let part: Vec<&[f32; 2]> = pts.iter().filter(|p| (p[0] < mid) == left).collect();
         let c = part.len() as f32;
-        let mean = [
-            part.iter().map(|p| p[0]).sum::<f32>() / c,
-            part.iter().map(|p| p[1]).sum::<f32>() / c,
-        ];
+        let mean = [part.iter().map(|p| p[0]).sum::<f32>() / c, part.iter().map(|p| p[1]).sum::<f32>() / c];
         let var = |k: usize| part.iter().map(|p| (p[k] - mean[k]).powi(2)).sum::<f32>() / c;
-        Cluster {
-            tag_hash: if left { 7 } else { 1013 },
-            count: c,
-            mean,
-            spread: [var(0).sqrt(), var(1).sqrt()],
-        }
+        Cluster { tag_hash: if left { 7 } else { 1013 }, count: c, mean, spread: [var(0).sqrt(), var(1).sqrt()] }
     };
     let mut out = vec![side(false), side(true)];
     out.retain(|c| c.count >= 1.0);
@@ -181,9 +138,7 @@ struct Plan {
 /// Curtains over the biggest clusters. A cluster whose curtain would mostly sit on
 /// an earlier one widens that one instead of stacking more light on it.
 fn plan_curtains(clusters: &[Cluster], size: [f32; 2]) -> Vec<Plan> {
-    let Some(biggest) = clusters.first() else {
-        return Vec::new();
-    };
+    let Some(biggest) = clusters.first() else { return Vec::new() };
     let mut plans: Vec<Plan> = Vec::new();
     for c in clusters.iter().take(MAX_CURTAINS * 3) {
         if plans.len() >= MAX_CURTAINS {
@@ -198,8 +153,7 @@ fn plan_curtains(clusters: &[Cluster], size: [f32; 2]) -> Vec<Plan> {
         let height = (c.spread[1] * 1.5 + size[1] * 0.24).min(size[1] * 0.6);
         let base = [c.mean[0], c.mean[1] + c.spread[1] * 0.6];
         if let Some(p) = plans.iter_mut().find(|p| {
-            (p.base[0] - base[0]).abs() < p.half_width.min(half_width) * 0.3
-                && (p.base[1] - base[1]).abs() < p.height.min(height) * 0.2
+            (p.base[0] - base[0]).abs() < p.half_width.min(half_width) * 0.3 && (p.base[1] - base[1]).abs() < p.height.min(height) * 0.2
         }) {
             // Nearly the same place: strengthen the earlier curtain instead.
             p.half_width = p.half_width.max(half_width);
@@ -236,10 +190,7 @@ pub(super) fn build(
     let (mut clusters, rank) = clusters(graph, &screen, &visible);
     if clusters.len() < 2 {
         // Few or no tags: the whole graph still gets its aurora, as two curtains.
-        let pts: Vec<[f32; 2]> = (0..n)
-            .filter(|&i| !graph.ghost[i] && visible(i))
-            .map(|i| screen[i])
-            .collect();
+        let pts: Vec<[f32; 2]> = (0..n).filter(|&i| !graph.ghost[i] && visible(i)).map(|i| screen[i]).collect();
         clusters.extend(halves(&pts));
     }
     let plans = plan_curtains(&clusters, size);
@@ -255,9 +206,7 @@ pub(super) fn build(
     // Each tag's colour: the curtain colours for the biggest clusters in rank order,
     // the rest of the palette (no magenta) by name.
     let tag_colour = |tag: Option<&str>| -> [f32; 3] {
-        let Some(tag) = tag else {
-            return [0.80, 0.88, 0.94];
-        };
+        let Some(tag) = tag else { return [0.80, 0.88, 0.94] };
         match rank.get(tag) {
             Some(&k) if k < RANK_ORDER.len() => PALETTE[RANK_ORDER[k]].0,
             _ => PALETTE[(hash(tag) % 4) as usize].0,
@@ -271,12 +220,7 @@ pub(super) fn build(
             continue;
         }
         let i = imp(s).max(imp(t));
-        data.edges.push(EdgeInstance {
-            a: screen[s],
-            b: screen[t],
-            color: [0.55, 0.80, 0.82, 0.025 + i * 0.05],
-            width: 0.5,
-        });
+        data.edges.push(EdgeInstance { a: screen[s], b: screen[t], color: [0.55, 0.80, 0.82, 0.025 + i * 0.05], width: 0.5 });
     }
 
     // Notes: small bright points, tinted by their cluster. Dim ones first.
@@ -286,25 +230,13 @@ pub(super) fn build(
         let p = imp(i);
         let [r, g, b] = mix(tag_colour(graph.tag[i].as_deref()), [1.0, 1.0, 1.0], 0.55);
         if graph.ghost[i] {
-            data.nodes.push(NodeInstance {
-                center: screen[i],
-                radius: 0.6,
-                color: [r, g, b, 0.22],
-            });
+            data.nodes.push(NodeInstance { center: screen[i], radius: 0.6, color: [r, g, b, 0.22] });
             continue;
         }
         let core = 0.65 + p.sqrt() * 2.0;
-        data.nodes.push(NodeInstance {
-            center: screen[i],
-            radius: core,
-            color: [r, g, b, 0.7 + p * 0.3],
-        });
+        data.nodes.push(NodeInstance { center: screen[i], radius: core, color: [r, g, b, 0.7 + p * 0.3] });
         if p > 0.12 {
-            data.glow.push(NodeInstance {
-                center: screen[i],
-                radius: core * 3.5 + 4.0,
-                color: [r, g, b, 0.10 + p * 0.3],
-            });
+            data.glow.push(NodeInstance { center: screen[i], radius: core * 3.5 + 4.0, color: [r, g, b, 0.10 + p * 0.3] });
         }
     }
 
@@ -324,19 +256,12 @@ mod tests {
     use super::*;
 
     fn cluster(count: f32, x: f32, y: f32, spread: f32) -> Cluster {
-        Cluster {
-            tag_hash: count as u32,
-            count,
-            mean: [x, y],
-            spread: [spread, spread],
-        }
+        Cluster { tag_hash: count as u32, count, mean: [x, y], spread: [spread, spread] }
     }
 
     #[test]
     fn caps_curtains_and_skips_small_clusters() {
-        let mut cs: Vec<Cluster> = (0..20)
-            .map(|k| cluster(100.0 - k as f32, 100.0 + k as f32 * 300.0, 400.0, 20.0))
-            .collect();
+        let mut cs: Vec<Cluster> = (0..20).map(|k| cluster(100.0 - k as f32, 100.0 + k as f32 * 300.0, 400.0, 20.0)).collect();
         cs.push(cluster(2.0, 50.0, 50.0, 5.0));
         let plans = plan_curtains(&cs, [8000.0, 1000.0]);
         assert_eq!(plans.len(), MAX_CURTAINS);
@@ -344,16 +269,10 @@ mod tests {
 
     #[test]
     fn overlapping_clusters_merge_into_one_curtain() {
-        let cs = vec![
-            cluster(100.0, 500.0, 400.0, 60.0),
-            cluster(80.0, 520.0, 410.0, 50.0),
-        ];
+        let cs = vec![cluster(100.0, 500.0, 400.0, 60.0), cluster(80.0, 520.0, 410.0, 50.0)];
         let plans = plan_curtains(&cs, [1500.0, 1000.0]);
         assert_eq!(plans.len(), 1);
-        let apart = vec![
-            cluster(100.0, 300.0, 400.0, 60.0),
-            cluster(80.0, 1100.0, 400.0, 50.0),
-        ];
+        let apart = vec![cluster(100.0, 300.0, 400.0, 60.0), cluster(80.0, 1100.0, 400.0, 50.0)];
         assert_eq!(plan_curtains(&apart, [1500.0, 1000.0]).len(), 2);
     }
 

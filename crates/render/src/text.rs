@@ -14,9 +14,7 @@
 //! halo is soft anyway) in one R8 texture sized to what the current items need.
 
 use bytemuck::{Pod, Zeroable};
-use glyphon::cosmic_text::{
-    Align, Attrs, Buffer, Color, Family, FamilyOwned, FontSystem, Metrics, Shaping, SwashCache,
-};
+use glyphon::cosmic_text::{Align, Attrs, Buffer, Color, Family, FamilyOwned, FontSystem, Metrics, Shaping, SwashCache};
 use glyphon::{Cache, ColorMode, Resolution, TextArea, TextAtlas, TextBounds, Viewport};
 
 use crate::Gpu;
@@ -122,14 +120,9 @@ impl TextRenderer {
         let cache = Cache::new(device);
         // Colours are sRGB values blended as-is on the usual (non-sRGB) targets,
         // like the web canvas; glyphon calls that "Web" mode.
-        let mode = if format.is_srgb() {
-            ColorMode::Accurate
-        } else {
-            ColorMode::Web
-        };
+        let mode = if format.is_srgb() { ColorMode::Accurate } else { ColorMode::Web };
         let mut atlas = TextAtlas::with_color_mode(device, &gpu.queue, &cache, format, mode);
-        let glyphs =
-            glyphon::TextRenderer::new(&mut atlas, device, wgpu::MultisampleState::default(), None);
+        let glyphs = glyphon::TextRenderer::new(&mut atlas, device, wgpu::MultisampleState::default(), None);
         TextRenderer {
             font_system,
             swash: SwashCache::new(),
@@ -155,41 +148,22 @@ impl TextRenderer {
     /// Lays out and uploads `items` for a target of `size` pixels at `scale` pixels per
     /// point. Call only when the items or the target change.
     pub fn prepare(&mut self, gpu: &Gpu, items: &[TextItem], size: [u32; 2], scale: f32) {
-        if self
-            .last
-            .as_ref()
-            .is_some_and(|(i, s, k)| i == items && *s == size && *k == scale)
-        {
+        if self.last.as_ref().is_some_and(|(i, s, k)| i == items && *s == size && *k == scale) {
             return;
         }
-        let scale = if scale.is_finite() && scale > 0.0 {
-            scale
-        } else {
-            1.0
-        };
+        let scale = if scale.is_finite() && scale > 0.0 { scale } else { 1.0 };
         while self.buffers.len() < items.len() {
-            self.buffers
-                .push(Buffer::new_empty(Metrics::new(12.0, 15.0)));
+            self.buffers.push(Buffer::new_empty(Metrics::new(12.0, 15.0)));
         }
 
         // Shape every item and work out where its text block goes, in pixels.
         let mut placed = Vec::with_capacity(items.len());
         for (i, item) in items.iter().enumerate() {
-            if item.text.trim().is_empty()
-                || item.color[3] <= 0.0
-                || !item.size.is_finite()
-                || item.size <= 0.0
-            {
+            if item.text.trim().is_empty() || item.color[3] <= 0.0 || !item.size.is_finite() || item.size <= 0.0 {
                 continue;
             }
             let family = &self.families[item.family as usize];
-            let block = layout(
-                &mut self.font_system,
-                &mut self.buffers[i],
-                item,
-                family,
-                scale,
-            );
+            let block = layout(&mut self.font_system, &mut self.buffers[i], item, family, scale);
             let [w, h] = block;
             let (x, y) = (item.pos[0] * scale, item.pos[1] * scale);
             let (left, top) = match item.anchor {
@@ -201,13 +175,7 @@ impl TextRenderer {
                 Anchor::Center => (x - w / 2.0, y - h / 2.0),
             };
             // Whole pixels keep the glyphs crisp.
-            placed.push(Placed {
-                item: i,
-                left: left.round(),
-                top: top.round(),
-                w,
-                h,
-            });
+            placed.push(Placed { item: i, left: left.round(), top: top.round(), w, h });
         }
 
         // Plates and glow sprites, in item order, under all text.
@@ -221,9 +189,7 @@ impl TextRenderer {
                 TextStyle::Badge => {}
                 TextStyle::Glow if item.accent[3] > 0.0 => {
                     let buffer = &mut self.buffers[p.item];
-                    if let Some(s) =
-                        glow_sprite(&mut self.font_system, &mut self.swash, buffer, p, scale)
-                    {
+                    if let Some(s) = glow_sprite(&mut self.font_system, &mut self.swash, buffer, p, scale) {
                         sprites.push((quads.len(), s));
                         quads.push(Quad {
                             rect: [0.0; 4],
@@ -242,13 +208,7 @@ impl TextRenderer {
         self.quads.upload(gpu, size, &mut quads, &sprites);
 
         // Glyphs.
-        self.viewport.update(
-            &gpu.queue,
-            Resolution {
-                width: size[0],
-                height: size[1],
-            },
-        );
+        self.viewport.update(&gpu.queue, Resolution { width: size[0], height: size[1] });
         self.atlas.trim();
         let areas = placed.iter().map(|p| {
             let c = items[p.item].color;
@@ -262,15 +222,9 @@ impl TextRenderer {
                 custom_glyphs: &[],
             }
         });
-        if let Err(e) = self.glyphs.prepare(
-            &gpu.device,
-            &gpu.queue,
-            &mut self.font_system,
-            &mut self.atlas,
-            &self.viewport,
-            areas,
-            &mut self.swash,
-        ) {
+        if let Err(e) =
+            self.glyphs.prepare(&gpu.device, &gpu.queue, &mut self.font_system, &mut self.atlas, &self.viewport, areas, &mut self.swash)
+        {
             eprintln!("vw-render: text prepare failed: {e}");
         }
         self.buffers.truncate(items.len());
@@ -296,24 +250,14 @@ struct Placed {
 fn pick_family(fs: &FontSystem, names: &[&str], generic: Family<'_>) -> FamilyOwned {
     names
         .iter()
-        .find(|name| {
-            fs.db()
-                .faces()
-                .any(|f| f.families.iter().any(|(n, _)| n == *name))
-        })
+        .find(|name| fs.db().faces().any(|f| f.families.iter().any(|(n, _)| n == *name)))
         .map(|name| FamilyOwned::Name((*name).into()))
         .unwrap_or_else(|| FamilyOwned::new(generic))
 }
 
 /// Shapes `item` into `buffer` at pixel size and returns the block's [width, height]
 /// in pixels.
-fn layout(
-    fs: &mut FontSystem,
-    buffer: &mut Buffer,
-    item: &TextItem,
-    family: &FamilyOwned,
-    scale: f32,
-) -> [f32; 2] {
+fn layout(fs: &mut FontSystem, buffer: &mut Buffer, item: &TextItem, family: &FamilyOwned, scale: f32) -> [f32; 2] {
     let px = item.size * scale;
     let align = match item.anchor {
         Anchor::TopCenter | Anchor::Center => Align::Center,
@@ -326,9 +270,7 @@ fn layout(
     buffer.set_text(&item.text, &attrs, Shaping::Advanced, Some(align));
     buffer.shape_until_scroll(fs, false);
     let measure = |b: &Buffer| {
-        b.layout_runs().fold([0.0f32, 0.0f32], |[w, h], run| {
-            [w.max(run.line_w), h.max(run.line_top + run.line_height)]
-        })
+        b.layout_runs().fold([0.0f32, 0.0f32], |[w, h], run| [w.max(run.line_w), h.max(run.line_top + run.line_height)])
     };
     let mut block = measure(buffer);
     // Align lines within the block itself, not within the wrap width, so anchors
@@ -353,23 +295,14 @@ fn badge_quad(item: &TextItem, p: &Placed, scale: f32) -> Quad {
     // The web outline is the note colour at 25%; the plate colour here is already a
     // mix towards it, so brighten its hue to full value.
     let m = r.max(g).max(b);
-    let stroke = if m > 0.0 {
-        [r / m, g / m, b / m, BADGE_STROKE_ALPHA]
-    } else {
-        [1.0, 1.0, 1.0, BADGE_STROKE_ALPHA]
-    };
+    let stroke = if m > 0.0 { [r / m, g / m, b / m, BADGE_STROKE_ALPHA] } else { [1.0, 1.0, 1.0, BADGE_STROKE_ALPHA] };
     Quad {
         // One extra pixel each side for the anti-aliased edge and the outer stroke.
         rect: [cx - w / 2.0 - 1.0, cy - h / 2.0 - 1.0, w + 2.0, h + 2.0],
         uv: [0.0; 4],
         fill: item.accent,
         stroke,
-        shape: [
-            (BADGE_RADIUS * scale).min(h / 2.0),
-            BADGE_STROKE * scale,
-            0.0,
-            0.0,
-        ],
+        shape: [(BADGE_RADIUS * scale).min(h / 2.0), BADGE_STROKE * scale, 0.0, 0.0],
     }
 }
 
@@ -382,13 +315,7 @@ struct Sprite {
 }
 
 /// Rasterises the item's glyphs into a coverage mask and blurs it into a halo.
-fn glow_sprite(
-    fs: &mut FontSystem,
-    swash: &mut SwashCache,
-    buffer: &mut Buffer,
-    p: &Placed,
-    scale: f32,
-) -> Option<Sprite> {
+fn glow_sprite(fs: &mut FontSystem, swash: &mut SwashCache, buffer: &mut Buffer, p: &Placed, scale: f32) -> Option<Sprite> {
     // One texel per point: halve the resolution on Retina.
     let f = (scale.floor() as u32).max(1);
     let sigma = GLOW_SIGMA * scale / f as f32;
@@ -399,22 +326,17 @@ fn glow_sprite(
         return None;
     }
     let mut full = vec![0u8; (w * h) as usize];
-    buffer.draw(
-        fs,
-        swash,
-        Color::rgba(255, 255, 255, 255),
-        |x, y, cw, ch, c| {
-            for yy in y..y + ch as i32 {
-                for xx in x..x + cw as i32 {
-                    let (px, py) = (xx + pad as i32, yy + pad as i32);
-                    if px >= 0 && py >= 0 && (px as u32) < w && (py as u32) < h {
-                        let i = (py as u32 * w + px as u32) as usize;
-                        full[i] = full[i].saturating_add(c.a());
-                    }
+    buffer.draw(fs, swash, Color::rgba(255, 255, 255, 255), |x, y, cw, ch, c| {
+        for yy in y..y + ch as i32 {
+            for xx in x..x + cw as i32 {
+                let (px, py) = (xx + pad as i32, yy + pad as i32);
+                if px >= 0 && py >= 0 && (px as u32) < w && (py as u32) < h {
+                    let i = (py as u32 * w + px as u32) as usize;
+                    full[i] = full[i].saturating_add(c.a());
                 }
             }
-        },
-    );
+        }
+    });
     let (sw, sh) = (w / f, h / f);
     let mut mask = vec![0f32; (sw * sh) as usize];
     for y in 0..h {
@@ -426,12 +348,7 @@ fn glow_sprite(
     mask.iter_mut().for_each(|v| *v *= norm);
     gaussian_blur(&mut mask, sw as usize, sh as usize, sigma);
     let data = mask.iter().map(|v| to_u8(v * GLOW_GAIN)).collect();
-    Some(Sprite {
-        origin: [p.left - pad as f32, p.top - pad as f32],
-        size: [sw, sh],
-        factor: f,
-        data,
-    })
+    Some(Sprite { origin: [p.left - pad as f32, p.top - pad as f32], size: [sw, sh], factor: f, data })
 }
 
 /// Three box blurs per axis, which approximates a Gaussian closely.
@@ -443,9 +360,7 @@ fn gaussian_blur(img: &mut [f32], w: usize, h: usize, sigma: f32) {
         wl -= 1;
     }
     let wl = wl.max(1);
-    let m = ((12.0 * sigma * sigma - n * (wl * wl) as f32 - 4.0 * n * wl as f32 - 3.0 * n)
-        / (-4.0 * wl as f32 - 4.0))
-        .round() as i32;
+    let m = ((12.0 * sigma * sigma - n * (wl * wl) as f32 - 4.0 * n * wl as f32 - 3.0 * n) / (-4.0 * wl as f32 - 4.0)).round() as i32;
     let mut tmp = vec![0f32; img.len()];
     for pass in 0..3 {
         let r = (if pass < m { wl } else { wl + 2 } - 1) as usize / 2;
@@ -456,15 +371,7 @@ fn gaussian_blur(img: &mut [f32], w: usize, h: usize, sigma: f32) {
 
 /// Blurs `lines` lines of `len` samples; sample `j` of line `i` is at `i * line + j * step`.
 /// Samples outside the image count as zero.
-fn box_blur(
-    src: &[f32],
-    dst: &mut [f32],
-    len: usize,
-    lines: usize,
-    r: usize,
-    step: usize,
-    line: usize,
-) {
+fn box_blur(src: &[f32], dst: &mut [f32], len: usize, lines: usize, r: usize, step: usize, line: usize) {
     let inv = 1.0 / (2 * r + 1) as f32;
     for i in 0..lines {
         let at = |j: usize| i * line + j * step;
@@ -520,11 +427,7 @@ impl QuadLayer {
                 wgpu::BindGroupLayoutEntry {
                     binding: 0,
                     visibility: wgpu::ShaderStages::VERTEX,
-                    ty: wgpu::BindingType::Buffer {
-                        ty: wgpu::BufferBindingType::Uniform,
-                        has_dynamic_offset: false,
-                        min_binding_size: None,
-                    },
+                    ty: wgpu::BindingType::Buffer { ty: wgpu::BufferBindingType::Uniform, has_dynamic_offset: false, min_binding_size: None },
                     count: None,
                 },
                 wgpu::BindGroupLayoutEntry {
@@ -558,20 +461,11 @@ impl QuadLayer {
         let pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
             label: Some("text quads"),
             layout: Some(&pl),
-            vertex: wgpu::VertexState {
-                module: &module,
-                entry_point: Some("vs"),
-                buffers: &[Some(quad_layout)],
-                compilation_options: Default::default(),
-            },
+            vertex: wgpu::VertexState { module: &module, entry_point: Some("vs"), buffers: &[Some(quad_layout)], compilation_options: Default::default() },
             fragment: Some(wgpu::FragmentState {
                 module: &module,
                 entry_point: Some("fs"),
-                targets: &[Some(wgpu::ColorTargetState {
-                    format,
-                    blend: Some(wgpu::BlendState::ALPHA_BLENDING),
-                    write_mask: wgpu::ColorWrites::ALL,
-                })],
+                targets: &[Some(wgpu::ColorTargetState { format, blend: Some(wgpu::BlendState::ALPHA_BLENDING), write_mask: wgpu::ColorWrites::ALL })],
                 compilation_options: Default::default(),
             }),
             primitive: Default::default(),
@@ -589,44 +483,21 @@ impl QuadLayer {
         });
         let glow = glow_texture(gpu, [1, 1]);
         let bind_group = bind(gpu, &layout, &params, &glow, &sampler);
-        QuadLayer {
-            pipeline,
-            layout,
-            params,
-            sampler,
-            glow,
-            bind_group,
-            instances: None,
-            count: 0,
-        }
+        QuadLayer { pipeline, layout, params, sampler, glow, bind_group, instances: None, count: 0 }
     }
 
     /// Packs the sprites into the glow texture, fills in their quads' rects and
     /// UVs, and uploads the instances. `sprites` pairs a quad index with its sprite.
-    fn upload(
-        &mut self,
-        gpu: &Gpu,
-        size: [u32; 2],
-        quads: &mut Vec<Quad>,
-        sprites: &[(usize, Sprite)],
-    ) {
+    fn upload(&mut self, gpu: &Gpu, size: [u32; 2], quads: &mut Vec<Quad>, sprites: &[(usize, Sprite)]) {
         // New buffers rather than queue writes, so a redraw needs no GPU copy (see
         // `Gpu::buffer_with`).
         let params: [f32; 4] = [size[0].max(1) as f32, size[1].max(1) as f32, 0.0, 0.0];
-        self.params = gpu.buffer_with(
-            "text quad params",
-            wgpu::BufferUsages::UNIFORM,
-            bytemuck::cast_slice(&params),
-        );
+        self.params = gpu.buffer_with("text quad params", wgpu::BufferUsages::UNIFORM, bytemuck::cast_slice(&params));
 
         // Shelf packing with a one-texel empty border around every sprite, so
         // bilinear sampling never picks up a neighbour.
         let max_dim = gpu.device.limits().max_texture_dimension_2d;
-        let widest = sprites
-            .iter()
-            .map(|(_, s)| s.size[0] + 2)
-            .max()
-            .unwrap_or(1);
+        let widest = sprites.iter().map(|(_, s)| s.size[0] + 2).max().unwrap_or(1);
         let atlas_w = widest.max(256).min(max_dim);
         let mut slots = Vec::with_capacity(sprites.len());
         let (mut x, mut y, mut shelf) = (0u32, 0u32, 0u32);
@@ -645,11 +516,7 @@ impl QuadLayer {
             x += w;
             shelf = shelf.max(h);
         }
-        let atlas_h = if sprites.is_empty() {
-            1
-        } else {
-            (y + shelf + 1).next_multiple_of(16).min(max_dim)
-        };
+        let atlas_h = if sprites.is_empty() { 1 } else { (y + shelf + 1).next_multiple_of(16).min(max_dim) };
         let atlas_w = if sprites.is_empty() { 1 } else { atlas_w };
 
         let cur = [self.glow.width(), self.glow.height()];
@@ -667,23 +534,14 @@ impl QuadLayer {
                 for row in 0..s.size[1] {
                     let src = (row * s.size[0]) as usize;
                     let dst = ((sy + row) * atlas_w + sx) as usize;
-                    image[dst..dst + s.size[0] as usize]
-                        .copy_from_slice(&s.data[src..src + s.size[0] as usize]);
+                    image[dst..dst + s.size[0] as usize].copy_from_slice(&s.data[src..src + s.size[0] as usize]);
                 }
             }
             gpu.queue.write_texture(
                 self.glow.as_image_copy(),
                 &image,
-                wgpu::TexelCopyBufferLayout {
-                    offset: 0,
-                    bytes_per_row: Some(atlas_w),
-                    rows_per_image: Some(atlas_h),
-                },
-                wgpu::Extent3d {
-                    width: atlas_w,
-                    height: atlas_h,
-                    depth_or_array_layers: 1,
-                },
+                wgpu::TexelCopyBufferLayout { offset: 0, bytes_per_row: Some(atlas_w), rows_per_image: Some(atlas_h) },
+                wgpu::Extent3d { width: atlas_w, height: atlas_h, depth_or_array_layers: 1 },
             );
         }
         let mut dropped = Vec::new();
@@ -693,18 +551,8 @@ impl QuadLayer {
                 continue;
             };
             let f = s.factor as f32;
-            quads[*qi].rect = [
-                s.origin[0],
-                s.origin[1],
-                s.size[0] as f32 * f,
-                s.size[1] as f32 * f,
-            ];
-            quads[*qi].uv = [
-                sx as f32 / tw,
-                sy as f32 / th,
-                (sx + s.size[0]) as f32 / tw,
-                (sy + s.size[1]) as f32 / th,
-            ];
+            quads[*qi].rect = [s.origin[0], s.origin[1], s.size[0] as f32 * f, s.size[1] as f32 * f];
+            quads[*qi].uv = [sx as f32 / tw, sy as f32 / th, (sx + s.size[0]) as f32 / tw, (sy + s.size[1]) as f32 / th];
         }
         for qi in dropped.into_iter().rev() {
             quads.remove(qi);
@@ -712,14 +560,11 @@ impl QuadLayer {
 
         self.count = quads.len() as u32;
         let bytes: &[u8] = bytemuck::cast_slice(quads);
-        self.instances = (!bytes.is_empty())
-            .then(|| gpu.buffer_with("text quads", wgpu::BufferUsages::VERTEX, bytes));
+        self.instances = (!bytes.is_empty()).then(|| gpu.buffer_with("text quads", wgpu::BufferUsages::VERTEX, bytes));
     }
 
     fn render(&self, pass: &mut wgpu::RenderPass<'_>) {
-        let Some(buf) = self.instances.as_ref().filter(|_| self.count > 0) else {
-            return;
-        };
+        let Some(buf) = self.instances.as_ref().filter(|_| self.count > 0) else { return };
         pass.set_pipeline(&self.pipeline);
         pass.set_bind_group(0, &self.bind_group, &[]);
         pass.set_vertex_buffer(0, buf.slice(..));
@@ -730,11 +575,7 @@ impl QuadLayer {
 fn glow_texture(gpu: &Gpu, size: [u32; 2]) -> wgpu::Texture {
     gpu.device.create_texture(&wgpu::TextureDescriptor {
         label: Some("text glow"),
-        size: wgpu::Extent3d {
-            width: size[0],
-            height: size[1],
-            depth_or_array_layers: 1,
-        },
+        size: wgpu::Extent3d { width: size[0], height: size[1], depth_or_array_layers: 1 },
         mip_level_count: 1,
         sample_count: 1,
         dimension: wgpu::TextureDimension::D2,
@@ -744,30 +585,15 @@ fn glow_texture(gpu: &Gpu, size: [u32; 2]) -> wgpu::Texture {
     })
 }
 
-fn bind(
-    gpu: &Gpu,
-    layout: &wgpu::BindGroupLayout,
-    params: &wgpu::Buffer,
-    glow: &wgpu::Texture,
-    sampler: &wgpu::Sampler,
-) -> wgpu::BindGroup {
+fn bind(gpu: &Gpu, layout: &wgpu::BindGroupLayout, params: &wgpu::Buffer, glow: &wgpu::Texture, sampler: &wgpu::Sampler) -> wgpu::BindGroup {
     let view = glow.create_view(&Default::default());
     gpu.device.create_bind_group(&wgpu::BindGroupDescriptor {
         label: Some("text quads"),
         layout,
         entries: &[
-            wgpu::BindGroupEntry {
-                binding: 0,
-                resource: params.as_entire_binding(),
-            },
-            wgpu::BindGroupEntry {
-                binding: 1,
-                resource: wgpu::BindingResource::TextureView(&view),
-            },
-            wgpu::BindGroupEntry {
-                binding: 2,
-                resource: wgpu::BindingResource::Sampler(sampler),
-            },
+            wgpu::BindGroupEntry { binding: 0, resource: params.as_entire_binding() },
+            wgpu::BindGroupEntry { binding: 1, resource: wgpu::BindingResource::TextureView(&view) },
+            wgpu::BindGroupEntry { binding: 2, resource: wgpu::BindingResource::Sampler(sampler) },
         ],
     })
 }
