@@ -30,12 +30,17 @@ use std::path::Path;
 
 use bytemuck::{Pod, Zeroable};
 
-pub use burst::{BakedActor, BakedBurst, BurstActor, BurstInstance, BurstKey, BurstKind, BurstRenderer, EditBurst};
+pub use burst::{
+    BakedActor, BakedBurst, BurstActor, BurstInstance, BurstKey, BurstKind, BurstRenderer,
+    EditBurst,
+};
 pub use framing::{Framing, FramingMode, FramingOptions, OuterRing, SafeArea};
 pub use look::{LabelPick, Look, LookContext, derive_look};
-pub use scene::{BgMode, EdgeStyle, SceneData, SceneStyle, build_scene, parse_hex, style_from_config, tag_color};
-pub use theme::{Ambient, Theme};
+pub use scene::{
+    BgMode, EdgeStyle, SceneData, SceneStyle, build_scene, parse_hex, style_from_config, tag_color,
+};
 pub use text::{Anchor, FontFamily, TextItem, TextRenderer, TextStyle};
+pub use theme::{Ambient, Theme};
 
 /// Format of the cached scene texture.
 const SCENE_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Rgba8Unorm;
@@ -118,7 +123,10 @@ pub struct Gpu {
 impl Gpu {
     /// A device compatible with `compatible_surface` (if given). Asks for the
     /// low-power GPU: a wallpaper never needs the fast one.
-    pub fn new(compatible_surface: Option<&wgpu::Surface<'_>>, instance: wgpu::Instance) -> Option<Gpu> {
+    pub fn new(
+        compatible_surface: Option<&wgpu::Surface<'_>>,
+        instance: wgpu::Instance,
+    ) -> Option<Gpu> {
         let adapter = pollster::block_on(instance.request_adapter(&wgpu::RequestAdapterOptions {
             power_preference: wgpu::PowerPreference::LowPower,
             compatible_surface,
@@ -126,16 +134,28 @@ impl Gpu {
             apply_limit_buckets: false,
         }))
         .ok()?;
-        let mappable = adapter.features().contains(wgpu::Features::MAPPABLE_PRIMARY_BUFFERS);
+        let mappable = adapter
+            .features()
+            .contains(wgpu::Features::MAPPABLE_PRIMARY_BUFFERS);
         let (device, queue) = pollster::block_on(adapter.request_device(&wgpu::DeviceDescriptor {
             label: Some("vw"),
-            required_features: if mappable { wgpu::Features::MAPPABLE_PRIMARY_BUFFERS } else { wgpu::Features::empty() },
+            required_features: if mappable {
+                wgpu::Features::MAPPABLE_PRIMARY_BUFFERS
+            } else {
+                wgpu::Features::empty()
+            },
             // Keep the driver's memory pools small; a wallpaper renders rarely.
             memory_hints: wgpu::MemoryHints::MemoryUsage,
             ..Default::default()
         }))
         .ok()?;
-        Some(Gpu { instance, adapter, device, queue, mappable })
+        Some(Gpu {
+            instance,
+            adapter,
+            device,
+            queue,
+            mappable,
+        })
     }
 
     /// A new buffer holding `bytes`, for `usage` (vertex or uniform).
@@ -146,8 +166,15 @@ impl Gpu {
     /// Metal program). `queue.write_buffer` uploads with a copy, so a redraw that used
     /// it held both pools. A buffer created mapped and written by the CPU (unified
     /// memory) needs no copy, so a redraw touches only the render pool.
-    pub fn buffer_with(&self, label: &str, usage: wgpu::BufferUsages, bytes: &[u8]) -> wgpu::Buffer {
-        let size = (bytes.len() as u64).next_multiple_of(wgpu::COPY_BUFFER_ALIGNMENT).max(wgpu::COPY_BUFFER_ALIGNMENT);
+    pub fn buffer_with(
+        &self,
+        label: &str,
+        usage: wgpu::BufferUsages,
+        bytes: &[u8],
+    ) -> wgpu::Buffer {
+        let size = (bytes.len() as u64)
+            .next_multiple_of(wgpu::COPY_BUFFER_ALIGNMENT)
+            .max(wgpu::COPY_BUFFER_ALIGNMENT);
         if !self.mappable {
             let buffer = self.device.create_buffer(&wgpu::BufferDescriptor {
                 label: Some(label),
@@ -164,13 +191,21 @@ impl Gpu {
             usage: usage | wgpu::BufferUsages::MAP_WRITE,
             mapped_at_creation: true,
         });
-        buffer.slice(..).get_mapped_range_mut().expect("buffer mapped at creation").slice(..bytes.len()).copy_from_slice(bytes);
+        buffer
+            .slice(..)
+            .get_mapped_range_mut()
+            .expect("buffer mapped at creation")
+            .slice(..bytes.len())
+            .copy_from_slice(bytes);
         buffer.unmap();
         buffer
     }
 
     pub fn headless() -> Option<Gpu> {
-        Gpu::new(None, wgpu::Instance::new(wgpu::InstanceDescriptor::new_without_display_handle()))
+        Gpu::new(
+            None,
+            wgpu::Instance::new(wgpu::InstanceDescriptor::new_without_display_handle()),
+        )
     }
 }
 
@@ -180,19 +215,34 @@ pub fn preferred_format(formats: &[wgpu::TextureFormat]) -> wgpu::TextureFormat 
     formats
         .iter()
         .copied()
-        .find(|f| matches!(f, wgpu::TextureFormat::Bgra8Unorm | wgpu::TextureFormat::Rgba8Unorm))
+        .find(|f| {
+            matches!(
+                f,
+                wgpu::TextureFormat::Bgra8Unorm | wgpu::TextureFormat::Rgba8Unorm
+            )
+        })
         .unwrap_or(formats[0])
 }
 
-fn uniform_layout(device: &wgpu::Device, entries: &[wgpu::BindGroupLayoutEntry]) -> wgpu::BindGroupLayout {
-    device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor { label: None, entries })
+fn uniform_layout(
+    device: &wgpu::Device,
+    entries: &[wgpu::BindGroupLayoutEntry],
+) -> wgpu::BindGroupLayout {
+    device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+        label: None,
+        entries,
+    })
 }
 
 fn buffer_entry(binding: u32) -> wgpu::BindGroupLayoutEntry {
     wgpu::BindGroupLayoutEntry {
         binding,
         visibility: wgpu::ShaderStages::VERTEX_FRAGMENT,
-        ty: wgpu::BindingType::Buffer { ty: wgpu::BufferBindingType::Uniform, has_dynamic_offset: false, min_binding_size: None },
+        ty: wgpu::BindingType::Buffer {
+            ty: wgpu::BufferBindingType::Uniform,
+            has_dynamic_offset: false,
+            min_binding_size: None,
+        },
         count: None,
     }
 }
@@ -220,7 +270,11 @@ fn sampler_entry(binding: u32) -> wgpu::BindGroupLayoutEntry {
 }
 
 fn uniform_with<T: Pod>(gpu: &Gpu, label: &str, value: &T) -> wgpu::Buffer {
-    gpu.buffer_with(label, wgpu::BufferUsages::UNIFORM, bytemuck::bytes_of(value))
+    gpu.buffer_with(
+        label,
+        wgpu::BufferUsages::UNIFORM,
+        bytemuck::bytes_of(value),
+    )
 }
 
 struct Pipelines {
@@ -252,8 +306,19 @@ impl Pipelines {
             source: wgpu::ShaderSource::Wgsl(include_str!("post.wgsl").into()),
         });
         let scene_layout = uniform_layout(device, &[buffer_entry(0)]);
-        let blur_layout = uniform_layout(device, &[texture_entry(0), sampler_entry(1), buffer_entry(2)]);
-        let composite_layout = uniform_layout(device, &[texture_entry(0), texture_entry(1), sampler_entry(2), buffer_entry(3)]);
+        let blur_layout = uniform_layout(
+            device,
+            &[texture_entry(0), sampler_entry(1), buffer_entry(2)],
+        );
+        let composite_layout = uniform_layout(
+            device,
+            &[
+                texture_entry(0),
+                texture_entry(1),
+                sampler_entry(2),
+                buffer_entry(3),
+            ],
+        );
         let make = |module: &wgpu::ShaderModule,
                     layout: &wgpu::BindGroupLayout,
                     vs: &str,
@@ -269,11 +334,20 @@ impl Pipelines {
             device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
                 label: Some(fs),
                 layout: Some(&pl),
-                vertex: wgpu::VertexState { module, entry_point: Some(vs), buffers, compilation_options: Default::default() },
+                vertex: wgpu::VertexState {
+                    module,
+                    entry_point: Some(vs),
+                    buffers,
+                    compilation_options: Default::default(),
+                },
                 fragment: Some(wgpu::FragmentState {
                     module,
                     entry_point: Some(fs),
-                    targets: &[Some(wgpu::ColorTargetState { format, blend, write_mask: wgpu::ColorWrites::ALL })],
+                    targets: &[Some(wgpu::ColorTargetState {
+                        format,
+                        blend,
+                        write_mask: wgpu::ColorWrites::ALL,
+                    })],
                     compilation_options: Default::default(),
                 }),
                 primitive: Default::default(),
@@ -300,24 +374,128 @@ impl Pipelines {
         };
         let alpha = Some(wgpu::BlendState::ALPHA_BLENDING);
         let additive = Some(wgpu::BlendState {
-            color: wgpu::BlendComponent { src_factor: wgpu::BlendFactor::One, dst_factor: wgpu::BlendFactor::One, operation: wgpu::BlendOperation::Add },
-            alpha: wgpu::BlendComponent { src_factor: wgpu::BlendFactor::One, dst_factor: wgpu::BlendFactor::One, operation: wgpu::BlendOperation::Add },
+            color: wgpu::BlendComponent {
+                src_factor: wgpu::BlendFactor::One,
+                dst_factor: wgpu::BlendFactor::One,
+                operation: wgpu::BlendOperation::Add,
+            },
+            alpha: wgpu::BlendComponent {
+                src_factor: wgpu::BlendFactor::One,
+                dst_factor: wgpu::BlendFactor::One,
+                operation: wgpu::BlendOperation::Add,
+            },
         });
         let node = Some(node_layout);
         let edge = Some(edge_layout);
         Pipelines {
-            bg: make(&scene_mod, &scene_layout, "bg_vs", "bg_fs", &[], SCENE_FORMAT, None),
-            halos: make(&scene_mod, &scene_layout, "node_vs", "halo_fs", std::slice::from_ref(&node), SCENE_FORMAT, alpha),
-            edges: make(&scene_mod, &scene_layout, "edge_vs", "edge_fs", std::slice::from_ref(&edge), SCENE_FORMAT, alpha),
-            nodes: make(&scene_mod, &scene_layout, "node_vs", "node_fs", std::slice::from_ref(&node), SCENE_FORMAT, alpha),
-            stars: make(&scene_mod, &scene_layout, "node_vs", "star_fs", std::slice::from_ref(&node), SCENE_FORMAT, alpha),
-            inks: make(&scene_mod, &scene_layout, "ink_vs", "ink_fs", std::slice::from_ref(&node), SCENE_FORMAT, alpha),
-            ink_edges: make(&scene_mod, &scene_layout, "ink_edge_vs", "ink_edge_fs", std::slice::from_ref(&edge), SCENE_FORMAT, alpha),
-            glow: make(&scene_mod, &scene_layout, "node_vs", "glow_fs", std::slice::from_ref(&node), GLOW_FORMAT, additive),
-            curtains: make(&scene_mod, &scene_layout, "curtain_vs", "curtain_fs", &[Some(curtain_layout)], GLOW_FORMAT, additive),
-            blur: make(&post_mod, &blur_layout, "full_vs", "blur_fs", &[], GLOW_FORMAT, None),
-            composite: make(&post_mod, &composite_layout, "full_vs", "composite_fs", &[], out_format, None),
-            glow_overlay: make(&post_mod, &composite_layout, "full_vs", "glow_overlay_fs", &[], out_format, None),
+            bg: make(
+                &scene_mod,
+                &scene_layout,
+                "bg_vs",
+                "bg_fs",
+                &[],
+                SCENE_FORMAT,
+                None,
+            ),
+            halos: make(
+                &scene_mod,
+                &scene_layout,
+                "node_vs",
+                "halo_fs",
+                std::slice::from_ref(&node),
+                SCENE_FORMAT,
+                alpha,
+            ),
+            edges: make(
+                &scene_mod,
+                &scene_layout,
+                "edge_vs",
+                "edge_fs",
+                std::slice::from_ref(&edge),
+                SCENE_FORMAT,
+                alpha,
+            ),
+            nodes: make(
+                &scene_mod,
+                &scene_layout,
+                "node_vs",
+                "node_fs",
+                std::slice::from_ref(&node),
+                SCENE_FORMAT,
+                alpha,
+            ),
+            stars: make(
+                &scene_mod,
+                &scene_layout,
+                "node_vs",
+                "star_fs",
+                std::slice::from_ref(&node),
+                SCENE_FORMAT,
+                alpha,
+            ),
+            inks: make(
+                &scene_mod,
+                &scene_layout,
+                "ink_vs",
+                "ink_fs",
+                std::slice::from_ref(&node),
+                SCENE_FORMAT,
+                alpha,
+            ),
+            ink_edges: make(
+                &scene_mod,
+                &scene_layout,
+                "ink_edge_vs",
+                "ink_edge_fs",
+                std::slice::from_ref(&edge),
+                SCENE_FORMAT,
+                alpha,
+            ),
+            glow: make(
+                &scene_mod,
+                &scene_layout,
+                "node_vs",
+                "glow_fs",
+                std::slice::from_ref(&node),
+                GLOW_FORMAT,
+                additive,
+            ),
+            curtains: make(
+                &scene_mod,
+                &scene_layout,
+                "curtain_vs",
+                "curtain_fs",
+                &[Some(curtain_layout)],
+                GLOW_FORMAT,
+                additive,
+            ),
+            blur: make(
+                &post_mod,
+                &blur_layout,
+                "full_vs",
+                "blur_fs",
+                &[],
+                GLOW_FORMAT,
+                None,
+            ),
+            composite: make(
+                &post_mod,
+                &composite_layout,
+                "full_vs",
+                "composite_fs",
+                &[],
+                out_format,
+                None,
+            ),
+            glow_overlay: make(
+                &post_mod,
+                &composite_layout,
+                "full_vs",
+                "glow_overlay_fs",
+                &[],
+                out_format,
+                None,
+            ),
             scene_layout,
             blur_layout,
             composite_layout,
@@ -337,7 +515,12 @@ struct Targets {
 
 /// Puts `data` in a new vertex buffer in `slot` (see [`Gpu::buffer_with`]); empties
 /// the slot when there is nothing to draw. Returns the instance count.
-fn instance_buffer<T: Pod>(gpu: &Gpu, slot: &mut Option<wgpu::Buffer>, data: &[T], label: &str) -> u32 {
+fn instance_buffer<T: Pod>(
+    gpu: &Gpu,
+    slot: &mut Option<wgpu::Buffer>,
+    data: &[T],
+    label: &str,
+) -> u32 {
     let bytes: &[u8] = bytemuck::cast_slice(data);
     *slot = (!bytes.is_empty()).then(|| gpu.buffer_with(label, wgpu::BufferUsages::VERTEX, bytes));
     data.len() as u32
@@ -396,41 +579,79 @@ impl WallpaperRenderer {
         let tex = |label: &str, w: u32, h: u32, format: wgpu::TextureFormat| {
             device.create_texture(&wgpu::TextureDescriptor {
                 label: Some(label),
-                size: wgpu::Extent3d { width: w.max(1), height: h.max(1), depth_or_array_layers: 1 },
+                size: wgpu::Extent3d {
+                    width: w.max(1),
+                    height: h.max(1),
+                    depth_or_array_layers: 1,
+                },
                 mip_level_count: 1,
                 sample_count: 1,
                 dimension: wgpu::TextureDimension::D2,
                 format,
-                usage: wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::TEXTURE_BINDING,
+                usage: wgpu::TextureUsages::RENDER_ATTACHMENT
+                    | wgpu::TextureUsages::TEXTURE_BINDING,
                 view_formats: &[],
             })
         };
-        let (gw, gh) = (size[0].div_ceil(GLOW_DOWNSCALE), size[1].div_ceil(GLOW_DOWNSCALE));
+        let (gw, gh) = (
+            size[0].div_ceil(GLOW_DOWNSCALE),
+            size[1].div_ceil(GLOW_DOWNSCALE),
+        );
         let scene = tex("scene", size[0], size[1], SCENE_FORMAT);
         let glow_a = tex("glow a", gw, gh, GLOW_FORMAT);
         let glow_b = tex("glow b", gw, gh, GLOW_FORMAT);
         let view = |t: &wgpu::Texture| t.create_view(&Default::default());
         let texel = [1.0 / gw as f32, 1.0 / gh as f32];
         let blur_bind = |src: &wgpu::Texture, dir: [f32; 2]| {
-            let uniforms = uniform_with(gpu, "blur", &BlurUniforms { dir, _pad: [0.0; 2] });
+            let uniforms = uniform_with(
+                gpu,
+                "blur",
+                &BlurUniforms {
+                    dir,
+                    _pad: [0.0; 2],
+                },
+            );
             device.create_bind_group(&wgpu::BindGroupDescriptor {
                 label: None,
                 layout: &self.pipelines.blur_layout,
                 entries: &[
-                    wgpu::BindGroupEntry { binding: 0, resource: wgpu::BindingResource::TextureView(&view(src)) },
-                    wgpu::BindGroupEntry { binding: 1, resource: wgpu::BindingResource::Sampler(&self.sampler) },
-                    wgpu::BindGroupEntry { binding: 2, resource: uniforms.as_entire_binding() },
+                    wgpu::BindGroupEntry {
+                        binding: 0,
+                        resource: wgpu::BindingResource::TextureView(&view(src)),
+                    },
+                    wgpu::BindGroupEntry {
+                        binding: 1,
+                        resource: wgpu::BindingResource::Sampler(&self.sampler),
+                    },
+                    wgpu::BindGroupEntry {
+                        binding: 2,
+                        resource: uniforms.as_entire_binding(),
+                    },
                 ],
             })
         };
         let blur_h = blur_bind(&glow_a, [texel[0], 0.0]);
         let blur_v = blur_bind(&glow_b, [0.0, texel[1]]);
-        self.targets = Some(Targets { size, scene, glow_a, glow_b, blur_h, blur_v });
+        self.targets = Some(Targets {
+            size,
+            scene,
+            glow_a,
+            glow_b,
+            blur_h,
+            blur_v,
+        });
     }
 
     /// Redraws the cached layers: call when the graph, positions, look, config or
     /// target size changed. `size` is in pixels, `scale` pixels per point.
-    pub fn set_scene(&mut self, gpu: &Gpu, size: [u32; 2], scale: f32, data: &SceneData, style: &SceneStyle) {
+    pub fn set_scene(
+        &mut self,
+        gpu: &Gpu,
+        size: [u32; 2],
+        scale: f32,
+        data: &SceneData,
+        style: &SceneStyle,
+    ) {
         self.ensure_targets(gpu, size);
         let halos = instance_buffer(gpu, &mut self.halo_buf, &data.halos, "halos");
         let edges = instance_buffer(gpu, &mut self.edge_buf, &data.edges, "edges");
@@ -448,14 +669,22 @@ impl WallpaperRenderer {
             size: points,
             scale,
             bg_mode: style.bg_mode as u32 as f32,
-            background: [style.background[0], style.background[1], style.background[2], 1.0],
+            background: [
+                style.background[0],
+                style.background[1],
+                style.background[2],
+                1.0,
+            ],
             background_glow: style.background_glow,
         };
         let bind = |u: &Uniforms, label: &str| {
             gpu.device.create_bind_group(&wgpu::BindGroupDescriptor {
                 label: None,
                 layout: &self.pipelines.scene_layout,
-                entries: &[wgpu::BindGroupEntry { binding: 0, resource: uniform_with(gpu, label, u).as_entire_binding() }],
+                entries: &[wgpu::BindGroupEntry {
+                    binding: 0,
+                    resource: uniform_with(gpu, label, u).as_entire_binding(),
+                }],
             })
         };
         let scene_bind = bind(&u, "scene uniforms");
@@ -501,7 +730,11 @@ impl WallpaperRenderer {
     /// Draws the cached layers onto `view`. `breath` scales the glow (1 = as
     /// configured).
     pub fn composite(&self, gpu: &Gpu, view: &wgpu::TextureView, style: &SceneStyle, breath: f32) {
-        let glow = if self.has_glow { style.glow * breath } else { 0.0 };
+        let glow = if self.has_glow {
+            style.glow * breath
+        } else {
+            0.0
+        };
         self.post(gpu, view, style, glow, &self.pipelines.composite);
     }
 
@@ -537,12 +770,27 @@ impl WallpaperRenderer {
 
     /// Size in pixels of the glow layer for the last scene.
     pub fn glow_size(&self) -> Option<[u32; 2]> {
-        self.targets.as_ref().map(|t| [t.size[0].div_ceil(GLOW_DOWNSCALE), t.size[1].div_ceil(GLOW_DOWNSCALE)])
+        self.targets.as_ref().map(|t| {
+            [
+                t.size[0].div_ceil(GLOW_DOWNSCALE),
+                t.size[1].div_ceil(GLOW_DOWNSCALE),
+            ]
+        })
     }
 
-    fn post(&self, gpu: &Gpu, view: &wgpu::TextureView, style: &SceneStyle, glow: f32, pipeline: &wgpu::RenderPipeline) {
+    fn post(
+        &self,
+        gpu: &Gpu,
+        view: &wgpu::TextureView,
+        style: &SceneStyle,
+        glow: f32,
+        pipeline: &wgpu::RenderPipeline,
+    ) {
         let Some(t) = &self.targets else { return };
-        let glow_px = [t.size[0].div_ceil(GLOW_DOWNSCALE) as f32, t.size[1].div_ceil(GLOW_DOWNSCALE) as f32];
+        let glow_px = [
+            t.size[0].div_ceil(GLOW_DOWNSCALE) as f32,
+            t.size[1].div_ceil(GLOW_DOWNSCALE) as f32,
+        ];
         let u = CompositeUniforms {
             glow,
             chroma: style.chromatic,
@@ -556,10 +804,22 @@ impl WallpaperRenderer {
             label: None,
             layout: &self.pipelines.composite_layout,
             entries: &[
-                wgpu::BindGroupEntry { binding: 0, resource: wgpu::BindingResource::TextureView(&view_of(&t.scene)) },
-                wgpu::BindGroupEntry { binding: 1, resource: wgpu::BindingResource::TextureView(&view_of(&t.glow_a)) },
-                wgpu::BindGroupEntry { binding: 2, resource: wgpu::BindingResource::Sampler(&self.sampler) },
-                wgpu::BindGroupEntry { binding: 3, resource: uniform_with(gpu, "composite", &u).as_entire_binding() },
+                wgpu::BindGroupEntry {
+                    binding: 0,
+                    resource: wgpu::BindingResource::TextureView(&view_of(&t.scene)),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 1,
+                    resource: wgpu::BindingResource::TextureView(&view_of(&t.glow_a)),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 2,
+                    resource: wgpu::BindingResource::Sampler(&self.sampler),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 3,
+                    resource: uniform_with(gpu, "composite", &u).as_entire_binding(),
+                },
             ],
         });
         let mut enc = gpu.device.create_command_encoder(&Default::default());
@@ -573,20 +833,32 @@ impl WallpaperRenderer {
     }
 }
 
-fn begin<'a>(enc: &'a mut wgpu::CommandEncoder, view: &'a wgpu::TextureView, label: &str) -> wgpu::RenderPass<'a> {
+fn begin<'a>(
+    enc: &'a mut wgpu::CommandEncoder,
+    view: &'a wgpu::TextureView,
+    label: &str,
+) -> wgpu::RenderPass<'a> {
     enc.begin_render_pass(&wgpu::RenderPassDescriptor {
         label: Some(label),
         color_attachments: &[Some(wgpu::RenderPassColorAttachment {
             view,
             resolve_target: None,
             depth_slice: None,
-            ops: wgpu::Operations { load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT), store: wgpu::StoreOp::Store },
+            ops: wgpu::Operations {
+                load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),
+                store: wgpu::StoreOp::Store,
+            },
         })],
         ..Default::default()
     })
 }
 
-fn draw_instances(pass: &mut wgpu::RenderPass<'_>, pipeline: &wgpu::RenderPipeline, buf: &Option<wgpu::Buffer>, count: u32) {
+fn draw_instances(
+    pass: &mut wgpu::RenderPass<'_>,
+    pipeline: &wgpu::RenderPipeline,
+    buf: &Option<wgpu::Buffer>,
+    count: u32,
+) {
     if let (Some(buf), true) = (buf, count > 0) {
         pass.set_pipeline(pipeline);
         pass.set_vertex_buffer(0, buf.slice(..));
@@ -595,11 +867,22 @@ fn draw_instances(pass: &mut wgpu::RenderPass<'_>, pipeline: &wgpu::RenderPipeli
 }
 
 /// Renders a scene off-screen and returns tightly packed RGBA8 pixels.
-pub fn render_rgba(gpu: &Gpu, size: [u32; 2], scale: f32, style: &SceneStyle, data: &SceneData, breath: f32) -> Vec<u8> {
+pub fn render_rgba(
+    gpu: &Gpu,
+    size: [u32; 2],
+    scale: f32,
+    style: &SceneStyle,
+    data: &SceneData,
+    breath: f32,
+) -> Vec<u8> {
     let format = wgpu::TextureFormat::Rgba8Unorm;
     let texture = gpu.device.create_texture(&wgpu::TextureDescriptor {
         label: Some("offscreen"),
-        size: wgpu::Extent3d { width: size[0], height: size[1], depth_or_array_layers: 1 },
+        size: wgpu::Extent3d {
+            width: size[0],
+            height: size[1],
+            depth_or_array_layers: 1,
+        },
         mip_level_count: 1,
         sample_count: 1,
         dimension: wgpu::TextureDimension::D2,
@@ -609,13 +892,19 @@ pub fn render_rgba(gpu: &Gpu, size: [u32; 2], scale: f32, style: &SceneStyle, da
     });
     let mut r = WallpaperRenderer::new(gpu, format);
     r.set_scene(gpu, size, scale, data, style);
-    r.composite(gpu, &texture.create_view(&Default::default()), style, breath);
+    r.composite(
+        gpu,
+        &texture.create_view(&Default::default()),
+        style,
+        breath,
+    );
     read_texture(gpu, &texture, size)
 }
 
 fn read_texture(gpu: &Gpu, texture: &wgpu::Texture, size: [u32; 2]) -> Vec<u8> {
     let row = size[0] * 4;
-    let padded = row.div_ceil(wgpu::COPY_BYTES_PER_ROW_ALIGNMENT) * wgpu::COPY_BYTES_PER_ROW_ALIGNMENT;
+    let padded =
+        row.div_ceil(wgpu::COPY_BYTES_PER_ROW_ALIGNMENT) * wgpu::COPY_BYTES_PER_ROW_ALIGNMENT;
     let buffer = gpu.device.create_buffer(&wgpu::BufferDescriptor {
         label: Some("readback"),
         size: u64::from(padded * size[1]),
@@ -627,9 +916,17 @@ fn read_texture(gpu: &Gpu, texture: &wgpu::Texture, size: [u32; 2]) -> Vec<u8> {
         texture.as_image_copy(),
         wgpu::TexelCopyBufferInfo {
             buffer: &buffer,
-            layout: wgpu::TexelCopyBufferLayout { offset: 0, bytes_per_row: Some(padded), rows_per_image: Some(size[1]) },
+            layout: wgpu::TexelCopyBufferLayout {
+                offset: 0,
+                bytes_per_row: Some(padded),
+                rows_per_image: Some(size[1]),
+            },
         },
-        wgpu::Extent3d { width: size[0], height: size[1], depth_or_array_layers: 1 },
+        wgpu::Extent3d {
+            width: size[0],
+            height: size[1],
+            depth_or_array_layers: 1,
+        },
     );
     gpu.queue.submit([enc.finish()]);
     let slice = buffer.slice(..);

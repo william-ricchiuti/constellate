@@ -10,7 +10,9 @@ fn px(rgba: &[u8], w: u32, x: u32, y: u32) -> [u8; 3] {
 }
 
 fn close(a: [u8; 3], b: [f32; 3], tol: i32) -> bool {
-    a.iter().zip(b).all(|(&a, b)| (i32::from(a) - (b * 255.0).round() as i32).abs() <= tol)
+    a.iter()
+        .zip(b)
+        .all(|(&a, b)| (i32::from(a) - (b * 255.0).round() as i32).abs() <= tol)
 }
 
 #[test]
@@ -29,7 +31,15 @@ fn draws_notes_links_and_background() {
         radius: vec![4.0, 4.0],
     };
     let positions = [[25.0, 30.0], [75.0, 30.0]];
-    let style = SceneStyle { background_glow: [0.0; 4], glow: 0.0, vignette: 0.0, grain: 0.0, halos: false, depth_of_field: false, ..SceneStyle::default() };
+    let style = SceneStyle {
+        background_glow: [0.0; 4],
+        glow: 0.0,
+        vignette: 0.0,
+        grain: 0.0,
+        halos: false,
+        depth_of_field: false,
+        ..SceneStyle::default()
+    };
     let [tr, tg, tb] = tag_color("work");
     let [ar, ag, ab] = style.accent;
     let look = Look {
@@ -41,11 +51,38 @@ fn draws_notes_links_and_background() {
         ..Look::default()
     };
     let (w, h) = (200, 120);
-    let data = build_scene(&graph, &look, &positions, &Framing::IDENTITY, &style, [w as f32 / 2.0, h as f32 / 2.0]);
+    let data = build_scene(
+        &graph,
+        &look,
+        &positions,
+        &Framing::IDENTITY,
+        &style,
+        [w as f32 / 2.0, h as f32 / 2.0],
+    );
     let rgba = render_rgba(&gpu, [w, h], 2.0, &style, &data, 1.0);
-    assert!(close(px(&rgba, w, 5, 5), style.background, 2), "background {:?}", px(&rgba, w, 5, 5));
-    assert!(close(px(&rgba, w, 50, 60), tag_color("work"), 16), "tagged note {:?}", px(&rgba, w, 50, 60));
-    assert!(close(px(&rgba, w, 150, 60), style.accent, 16), "untagged note {:?}", px(&rgba, w, 150, 60));
-    assert!(close(px(&rgba, w, 100, 60), style.accent, 6), "link {:?}", px(&rgba, w, 100, 60));
-    assert!(close(px(&rgba, w, 100, 90), style.background, 2), "empty space {:?}", px(&rgba, w, 100, 90));
+    assert!(
+        close(px(&rgba, w, 5, 5), style.background, 2),
+        "background {:?}",
+        px(&rgba, w, 5, 5)
+    );
+    assert!(
+        close(px(&rgba, w, 50, 60), tag_color("work"), 16),
+        "tagged note {:?}",
+        px(&rgba, w, 50, 60)
+    );
+    assert!(
+        close(px(&rgba, w, 150, 60), style.accent, 16),
+        "untagged note {:?}",
+        px(&rgba, w, 150, 60)
+    );
+    assert!(
+        close(px(&rgba, w, 100, 60), style.accent, 6),
+        "link {:?}",
+        px(&rgba, w, 100, 60)
+    );
+    assert!(
+        close(px(&rgba, w, 100, 90), style.background, 2),
+        "empty space {:?}",
+        px(&rgba, w, 100, 90)
+    );
 }

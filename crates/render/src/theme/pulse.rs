@@ -34,7 +34,11 @@ const HOP_MAX: [usize; 2] = [20, 28];
 const FAN_MAX: usize = 6;
 
 fn mix(a: [f32; 3], b: [f32; 3], t: f32) -> [f32; 3] {
-    [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t]
+    [
+        a[0] + (b[0] - a[0]) * t,
+        a[1] + (b[1] - a[1]) * t,
+        a[2] + (b[2] - a[2]) * t,
+    ]
 }
 
 pub(super) fn style(_cfg: &Config, base: SceneStyle) -> SceneStyle {
@@ -73,7 +77,11 @@ fn tint(graph: &LayoutGraph, _look: &Look, i: usize) -> [f32; 3] {
 
 /// A note's dot radius in points, from its importance.
 fn core(importance: f32, ghost: bool) -> f32 {
-    if ghost { 0.8 } else { 1.1 + importance.sqrt() * 3.4 }
+    if ghost {
+        0.8
+    } else {
+        1.1 + importance.sqrt() * 3.4
+    }
 }
 
 pub(super) fn build(
@@ -91,15 +99,31 @@ pub(super) fn build(
     let mut data = SceneData::default();
 
     // Fine, cool links; dense vaults get fainter ones so the core doesn't fog over.
-    let density = (800.0 / graph.links.len().max(1) as f32).sqrt().clamp(0.4, 1.0);
+    let density = (800.0 / graph.links.len().max(1) as f32)
+        .sqrt()
+        .clamp(0.4, 1.0);
     for (k, &(s, t)) in graph.links.iter().enumerate() {
         let (s, t) = (s as usize, t as usize);
-        if s >= n || t >= n || !visible(s) || !visible(t) || look.edge_color.get(k).is_some_and(|c| c[3] <= 0.0) {
+        if s >= n
+            || t >= n
+            || !visible(s)
+            || !visible(t)
+            || look.edge_color.get(k).is_some_and(|c| c[3] <= 0.0)
+        {
             continue;
         }
         let lo = imp(s).min(imp(t)).sqrt();
-        let [r, g, b] = mix(mix(tint(graph, look, s), tint(graph, look, t), 0.5), SLATE, 0.5);
-        data.edges.push(EdgeInstance { a: screen[s], b: screen[t], color: [r, g, b, (0.11 + lo * 0.26) * density], width: 0.55 + lo * 0.6 });
+        let [r, g, b] = mix(
+            mix(tint(graph, look, s), tint(graph, look, t), 0.5),
+            SLATE,
+            0.5,
+        );
+        data.edges.push(EdgeInstance {
+            a: screen[s],
+            b: screen[t],
+            color: [r, g, b, (0.11 + lo * 0.26) * density],
+            width: 0.55 + lo * 0.6,
+        });
     }
 
     // Small notes first so hubs draw on top.
@@ -110,12 +134,24 @@ pub(super) fn build(
         let [r, g, b] = tint(graph, look, i);
         let radius = core(p, graph.ghost[i]);
         if graph.ghost[i] {
-            data.nodes.push(NodeInstance { center: screen[i], radius, color: [r, g, b, 0.3] });
+            data.nodes.push(NodeInstance {
+                center: screen[i],
+                radius,
+                color: [r, g, b, 0.3],
+            });
             continue;
         }
-        data.nodes.push(NodeInstance { center: screen[i], radius, color: [r, g, b, 0.80 + p * 0.2] });
+        data.nodes.push(NodeInstance {
+            center: screen[i],
+            radius,
+            color: [r, g, b, 0.80 + p * 0.2],
+        });
         if p > 0.12 {
-            data.glow.push(NodeInstance { center: screen[i], radius: radius * 3.2 + 4.0, color: [r, g, b, 0.05 + p * 0.2] });
+            data.glow.push(NodeInstance {
+                center: screen[i],
+                radius: radius * 3.2 + 4.0,
+                color: [r, g, b, 0.05 + p * 0.2],
+            });
         }
     }
 
@@ -139,12 +175,36 @@ fn travel(a: [f32; 2], b: [f32; 2], [t0, t1]: [f32; 2], peak: f32) -> Vec<BurstK
     };
     let (fade_in, fade_out) = (t0 + 0.04, t1 - 0.06);
     vec![
-        BurstKey { t: 0.0, at: a, opacity: 0.0 },
-        BurstKey { t: t0, at: a, opacity: 0.0 },
-        BurstKey { t: fade_in, at: at(fade_in), opacity: peak },
-        BurstKey { t: fade_out, at: at(fade_out), opacity: peak },
-        BurstKey { t: t1, at: b, opacity: 0.0 },
-        BurstKey { t: 1.0, at: b, opacity: 0.0 },
+        BurstKey {
+            t: 0.0,
+            at: a,
+            opacity: 0.0,
+        },
+        BurstKey {
+            t: t0,
+            at: a,
+            opacity: 0.0,
+        },
+        BurstKey {
+            t: fade_in,
+            at: at(fade_in),
+            opacity: peak,
+        },
+        BurstKey {
+            t: fade_out,
+            at: at(fade_out),
+            opacity: peak,
+        },
+        BurstKey {
+            t: t1,
+            at: b,
+            opacity: 0.0,
+        },
+        BurstKey {
+            t: 1.0,
+            at: b,
+            opacity: 0.0,
+        },
     ]
 }
 
@@ -152,11 +212,31 @@ fn travel(a: [f32; 2], b: [f32; 2], [t0, t1]: [f32; 2], peak: f32) -> Vec<BurstK
 fn glint(at: [f32; 2], t: f32, fade: f32, peak: f32) -> Vec<BurstKey> {
     let end = (t + fade).min(0.995);
     vec![
-        BurstKey { t: 0.0, at, opacity: 0.0 },
-        BurstKey { t: (t - 0.03).max(0.0), at, opacity: 0.0 },
-        BurstKey { t: (t + 0.03).min(end), at, opacity: peak },
-        BurstKey { t: end, at, opacity: 0.0 },
-        BurstKey { t: 1.0, at, opacity: 0.0 },
+        BurstKey {
+            t: 0.0,
+            at,
+            opacity: 0.0,
+        },
+        BurstKey {
+            t: (t - 0.03).max(0.0),
+            at,
+            opacity: 0.0,
+        },
+        BurstKey {
+            t: (t + 0.03).min(end),
+            at,
+            opacity: peak,
+        },
+        BurstKey {
+            t: end,
+            at,
+            opacity: 0.0,
+        },
+        BurstKey {
+            t: 1.0,
+            at,
+            opacity: 0.0,
+        },
     ]
 }
 
@@ -197,12 +277,33 @@ pub(super) fn burst_actors(
     let mut actors = Vec::new();
 
     // The ring opening on the saved note, and a glow that lingers on it.
-    let ring = BurstInstance { center: [0.0; 2], core: c0, reach: c0 + 34.0, color: colour(0.9), progress: 0.0 };
+    let ring = BurstInstance {
+        center: [0.0; 2],
+        core: c0,
+        reach: c0 + 34.0,
+        color: colour(0.9),
+        progress: 0.0,
+    };
     let ring_play = [0.0, 0.45];
     let frames = ((ring_play[1] * burst.duration * burst.fps).round() as u32).max(2) + 1;
-    actors.push(BurstActor::fixed(BurstKind::PulseRing, ring, frames, ring_play, origin));
-    let dot = BurstInstance { center: [0.0; 2], core: c0 * 0.9 + 1.2, reach: c0 * 3.0 + 10.0, color: colour(1.0), progress: 0.0 };
-    actors.push(BurstActor { keys: glint(origin, 0.02, 0.8, 1.0), ..BurstActor::fixed(BurstKind::PulseGlint, dot, 1, [0.0, 1.0], origin) });
+    actors.push(BurstActor::fixed(
+        BurstKind::PulseRing,
+        ring,
+        frames,
+        ring_play,
+        origin,
+    ));
+    let dot = BurstInstance {
+        center: [0.0; 2],
+        core: c0 * 0.9 + 1.2,
+        reach: c0 * 3.0 + 10.0,
+        color: colour(1.0),
+        progress: 0.0,
+    };
+    actors.push(BurstActor {
+        keys: glint(origin, 0.02, 0.8, 1.0),
+        ..BurstActor::fixed(BurstKind::PulseGlint, dot, 1, [0.0, 1.0], origin)
+    });
 
     // Hop by hop: pulses from each lit note to its next neighbours.
     let mut lit = vec![node];
@@ -210,7 +311,11 @@ pub(super) fn burst_actors(
     for (hop, &(window, peak)) in HOPS.iter().enumerate() {
         let mut next: Vec<(usize, usize)> = Vec::new();
         for &from in &lit {
-            let mut to: Vec<usize> = neighbours[from].iter().copied().filter(|t| !seen.contains(t)).collect();
+            let mut to: Vec<usize> = neighbours[from]
+                .iter()
+                .copied()
+                .filter(|t| !seen.contains(t))
+                .collect();
             by_importance(&mut to);
             let fan = if hop == 0 { HOP_MAX[0] } else { FAN_MAX };
             for t in to.into_iter().take(fan) {
@@ -228,16 +333,31 @@ pub(super) fn burst_actors(
             if len < 4.0 {
                 continue;
             }
-            let comet = BurstInstance { center: [0.0; 2], core: 2.0, reach: (len * 0.45).clamp(8.0, 22.0), color: colour(1.0), progress: 0.0 };
+            let comet = BurstInstance {
+                center: [0.0; 2],
+                core: 2.0,
+                reach: (len * 0.45).clamp(8.0, 22.0),
+                color: colour(1.0),
+                progress: 0.0,
+            };
             actors.push(BurstActor {
                 angle: dy.atan2(dx),
                 keys: travel(a, b, window, peak),
                 ..BurstActor::fixed(BurstKind::PulseComet, comet, 1, [0.0, 1.0], a)
             });
             let c = core(imp(to), graph.ghost[to]);
-            let spark = BurstInstance { center: [0.0; 2], core: c * 0.8 + 1.0, reach: c * 2.5 + 8.0, color: colour(1.0), progress: 0.0 };
+            let spark = BurstInstance {
+                center: [0.0; 2],
+                core: c * 0.8 + 1.0,
+                reach: c * 2.5 + 8.0,
+                color: colour(1.0),
+                progress: 0.0,
+            };
             let fade = if hop == 0 { 0.32 } else { 0.18 };
-            actors.push(BurstActor { keys: glint(b, window[1], fade, peak * 0.9), ..BurstActor::fixed(BurstKind::PulseGlint, spark, 1, [0.0, 1.0], b) });
+            actors.push(BurstActor {
+                keys: glint(b, window[1], fade, peak * 0.9),
+                ..BurstActor::fixed(BurstKind::PulseGlint, spark, 1, [0.0, 1.0], b)
+            });
         }
         seen.extend(next.iter().map(|&(_, t)| t));
         lit = next.into_iter().map(|(_, t)| t).collect();
@@ -262,7 +382,11 @@ mod tests {
             degree: vec![1, 3, 2, 1, 1],
             radius: vec![3.0; 5],
         };
-        let look = Look { node_color: vec![[0.5, 0.6, 0.9, 1.0]; 5], node_importance: vec![0.2, 1.0, 0.5, 0.1, 0.0], ..Look::default() };
+        let look = Look {
+            node_color: vec![[0.5, 0.6, 0.9, 1.0]; 5],
+            node_importance: vec![0.2, 1.0, 0.5, 0.1, 0.0],
+            ..Look::default()
+        };
         let positions = (0..5).map(|i| [i as f32 * 50.0, 100.0]).collect();
         (graph, look, positions)
     }
@@ -271,33 +395,61 @@ mod tests {
     fn pulse_is_still_and_bursts_only_with_motion() {
         let theme = Theme::from_id("pulse");
         assert_eq!(theme, Theme::Pulse);
-        let showcase = Config { motion_mode: MotionMode::Showcase, ..Config::default() };
+        let showcase = Config {
+            motion_mode: MotionMode::Showcase,
+            ..Config::default()
+        };
         assert_eq!(theme.ambient(&theme.style(&showcase, false)), Ambient::None);
-        let still = Config { motion_mode: MotionMode::Still, ..Config::default() };
+        let still = Config {
+            motion_mode: MotionMode::Still,
+            ..Config::default()
+        };
         assert!(theme.edit_burst(&still).is_none());
-        let burst = theme.edit_burst(&Config { motion_mode: MotionMode::Balanced, ..Config::default() }).unwrap();
+        let burst = theme
+            .edit_burst(&Config {
+                motion_mode: MotionMode::Balanced,
+                ..Config::default()
+            })
+            .unwrap();
         assert!(burst.resolution < 1.0 && burst.duration > 1.0 && burst.duration < 4.0);
     }
 
     #[test]
     fn light_travels_two_hops_and_settles() {
         let (graph, look, positions) = chain();
-        let burst = EditBurst { duration: DURATION, fps: 12.0, resolution: 0.5 };
+        let burst = EditBurst {
+            duration: DURATION,
+            fps: 12.0,
+            resolution: 0.5,
+        };
         let actors = burst_actors(&graph, &look, &positions, &Framing::IDENTITY, 0, &burst);
-        let comets: Vec<&BurstActor> = actors.iter().filter(|a| a.kind == BurstKind::PulseComet).collect();
+        let comets: Vec<&BurstActor> = actors
+            .iter()
+            .filter(|a| a.kind == BurstKind::PulseComet)
+            .collect();
         // Hop 1: a -> b. Hop 2: b -> c and b -> e (the ghost), never back to a; d is three hops out.
         assert_eq!(comets.len(), 3);
         let ends: Vec<[f32; 2]> = comets.iter().map(|a| a.keys.last().unwrap().at).collect();
-        assert!(ends.contains(&[50.0, 100.0]) && ends.contains(&[100.0, 100.0]) && ends.contains(&[200.0, 100.0]));
+        assert!(
+            ends.contains(&[50.0, 100.0])
+                && ends.contains(&[100.0, 100.0])
+                && ends.contains(&[200.0, 100.0])
+        );
         assert!(!ends.contains(&[150.0, 100.0]) && !ends.contains(&[0.0, 100.0]));
         // The first pulse leaves a, is between a and b halfway through its hop, and
         // points along the link.
-        let first = comets.iter().find(|a| a.keys.last().unwrap().at == [50.0, 100.0]).unwrap();
+        let first = comets
+            .iter()
+            .find(|a| a.keys.last().unwrap().at == [50.0, 100.0])
+            .unwrap();
         assert_eq!(first.angle, 0.0);
         let (mid, op) = first.at(0.22);
         assert!(mid[0] > 10.0 && mid[0] < 40.0 && op > 0.9);
         // Second-hop pulses wait for the first to arrive and are dimmer.
-        let second = comets.iter().find(|a| a.keys.last().unwrap().at == [100.0, 100.0]).unwrap();
+        let second = comets
+            .iter()
+            .find(|a| a.keys.last().unwrap().at == [100.0, 100.0])
+            .unwrap();
         assert_eq!(second.at(0.3).1, 0.0);
         assert!(second.at(0.6).1 > 0.0 && second.at(0.6).1 < op);
         // Every actor ends transparent: faded out, or on its empty last frame.
@@ -312,7 +464,11 @@ mod tests {
     fn a_lonely_note_still_rings() {
         let (mut graph, look, positions) = chain();
         graph.links.clear();
-        let burst = EditBurst { duration: DURATION, fps: 8.0, resolution: 0.5 };
+        let burst = EditBurst {
+            duration: DURATION,
+            fps: 8.0,
+            resolution: 0.5,
+        };
         let actors = burst_actors(&graph, &look, &positions, &Framing::IDENTITY, 3, &burst);
         assert_eq!(actors.len(), 2);
         assert!(burst_actors(&graph, &look, &positions, &Framing::IDENTITY, 99, &burst).is_empty());

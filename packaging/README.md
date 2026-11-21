@@ -61,8 +61,8 @@ The 13.0 floor comes from the plist alone. The script deliberately unsets
 `--target` breaks proc-macro crates (`E0463 can't find crate for thiserror_impl`). Cargo does not
 rebuild when that variable changes, so if you hit E0463 after setting it, run `cargo clean`.
 
-It honours `CARGO_TARGET_DIR`. The icon, `icon/icon-1024.png`, is drawn by code (the menu-bar
-glyph, lit, on a dark rounded square) and committed; the script turns it into `AppIcon.icns`
+It honours `CARGO_TARGET_DIR`. The icon, `icon/icon-1024.png`, is drawn by code (a constellation
+on a night sky over a Dock: the wallpaper the app makes) and committed; the script turns it into `AppIcon.icns`
 with `sips` and `iconutil`. To redraw it:
 
 ```bash

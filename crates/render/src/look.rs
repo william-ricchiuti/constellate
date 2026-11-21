@@ -62,14 +62,30 @@ pub struct Look {
 }
 
 /// The web version's named palettes (`PALETTES` in `renderer-core.js`).
-const AURORA: [&str; 8] = ["#5ef2c8", "#7aa8ff", "#c77dff", "#ff7ab6", "#ffd479", "#6ee7ff", "#a3ff8f", "#ff9f6e"];
-const RISO: [&str; 8] = ["#ff48b0", "#0078bf", "#ffe800", "#00a95c", "#ff6c2f", "#765ba7", "#ff665e", "#00838a"];
-const METRO: [&str; 8] = ["#e3242b", "#0072ce", "#00a651", "#f6a800", "#f68b1f", "#8e3fbf", "#00b3c8", "#a05a2c"];
-const PASTEL: [&str; 8] = ["#f2c6a0", "#cfe0b0", "#b9d3ea", "#ebc3d9", "#f3e3a4", "#cdc1e8", "#a9ddd6", "#e8bcae"];
-const EARTH: [&str; 8] = ["#c8a165", "#8a9a5b", "#b5651d", "#6b8e8e", "#a0522d", "#d2b48c", "#556b2f", "#9c6644"];
-const NEON: [&str; 8] = ["#7df9ff", "#ff5ce1", "#b18cff", "#ffd36b", "#6bffb5", "#ff8a6b", "#6bb5ff", "#ff6b9d"];
-const VIRIDIS: [&str; 8] = ["#440154", "#46327e", "#365c8d", "#277f8e", "#1fa187", "#4ac16d", "#a0da39", "#fde725"];
-const MONO: [&str; 8] = ["#f2f2f2", "#d0d0d0", "#b0b0b0", "#909090", "#e4e4e4", "#c0c0c0", "#a0a0a0", "#808080"];
+const AURORA: [&str; 8] = [
+    "#5ef2c8", "#7aa8ff", "#c77dff", "#ff7ab6", "#ffd479", "#6ee7ff", "#a3ff8f", "#ff9f6e",
+];
+const RISO: [&str; 8] = [
+    "#ff48b0", "#0078bf", "#ffe800", "#00a95c", "#ff6c2f", "#765ba7", "#ff665e", "#00838a",
+];
+const METRO: [&str; 8] = [
+    "#e3242b", "#0072ce", "#00a651", "#f6a800", "#f68b1f", "#8e3fbf", "#00b3c8", "#a05a2c",
+];
+const PASTEL: [&str; 8] = [
+    "#f2c6a0", "#cfe0b0", "#b9d3ea", "#ebc3d9", "#f3e3a4", "#cdc1e8", "#a9ddd6", "#e8bcae",
+];
+const EARTH: [&str; 8] = [
+    "#c8a165", "#8a9a5b", "#b5651d", "#6b8e8e", "#a0522d", "#d2b48c", "#556b2f", "#9c6644",
+];
+const NEON: [&str; 8] = [
+    "#7df9ff", "#ff5ce1", "#b18cff", "#ffd36b", "#6bffb5", "#ff8a6b", "#6bb5ff", "#ff6b9d",
+];
+const VIRIDIS: [&str; 8] = [
+    "#440154", "#46327e", "#365c8d", "#277f8e", "#1fa187", "#4ac16d", "#a0da39", "#fde725",
+];
+const MONO: [&str; 8] = [
+    "#f2f2f2", "#d0d0d0", "#b0b0b0", "#909090", "#e4e4e4", "#c0c0c0", "#a0a0a0", "#808080",
+];
 
 /// Fresh (green) to stale (red), for `nodeColorMode: age` without a palette.
 const AGE_PALETTE: [&str; 5] = ["#78d97c", "#b8d960", "#e8c84a", "#e89a3c", "#d96b4a"];
@@ -145,9 +161,23 @@ fn tuning(cfg: &Config, nodes: usize, links: usize) -> Tuning {
             halo_radius_boost: 0.0,
         };
     }
-    let pick = |h: f64, d: f64, s: f64| if huge { h } else if dense { d } else { s };
+    let pick = |h: f64, d: f64, s: f64| {
+        if huge {
+            h
+        } else if dense {
+            d
+        } else {
+            s
+        }
+    };
     Tuning {
-        label_count: if huge { count.min(4) } else if dense { count.min(6) } else { count },
+        label_count: if huge {
+            count.min(4)
+        } else if dense {
+            count.min(6)
+        } else {
+            count
+        },
         label_min_importance: min_imp.max(pick(0.42, 0.28, 0.0)),
         edge_coloring: cfg.edge_coloring,
         link_opacity_scale: pick(0.78, 0.9, 1.0),
@@ -162,7 +192,10 @@ pub fn derive_look(graph: &Graph, layout: &LayoutGraph, cfg: &Config, ctx: &Look
     let n = layout.len();
     let tune = tuning(cfg, n, layout.links.len());
     let (accent_hex, background_hex) = if ctx.light {
-        (pick_hex(&cfg.light_accent, &cfg.accent), pick_hex(&cfg.light_background, &cfg.background))
+        (
+            pick_hex(&cfg.light_accent, &cfg.accent),
+            pick_hex(&cfg.light_background, &cfg.background),
+        )
     } else {
         (cfg.accent.as_str(), cfg.background.as_str())
     };
@@ -172,23 +205,52 @@ pub fn derive_look(graph: &Graph, layout: &LayoutGraph, cfg: &Config, ctx: &Look
 
     // Importance: degree over the best-connected note's degree (at least 1).
     let max_deg = layout.degree.iter().copied().max().unwrap_or(0).max(1);
-    let node_importance: Vec<f32> = layout.degree.iter().map(|&d| (d as f32 / max_deg as f32).min(1.0)).collect();
+    let node_importance: Vec<f32> = layout
+        .degree
+        .iter()
+        .map(|&d| (d as f32 / max_deg as f32).min(1.0))
+        .collect();
     // The default renderer's radius, which is also the layout's collision radius.
     let node_radius: Vec<f32> = (0..n)
         .map(|i| {
             // A size override (file size) stands in for the link count.
-            let w = graph.nodes.get(i).and_then(|g| g.weight).map_or(layout.degree[i] as f32, |w| w as f32);
+            let w = graph
+                .nodes
+                .get(i)
+                .and_then(|g| g.weight)
+                .map_or(layout.degree[i] as f32, |w| w as f32);
             let d = w.sqrt();
-            if layout.ghost[i] { 1.5 + d * 0.8 } else { 2.2 + d * 1.45 }
+            if layout.ghost[i] {
+                1.5 + d * 0.8
+            } else {
+                2.2 + d * 1.45
+            }
         })
         .collect();
 
-    let folders: Vec<Option<&str>> = (0..n).map(|i| graph.nodes.get(i).and_then(|g| g.folder.as_deref())).collect();
+    let folders: Vec<Option<&str>> = (0..n)
+        .map(|i| graph.nodes.get(i).and_then(|g| g.folder.as_deref()))
+        .collect();
     let tags: Vec<Option<&str>> = layout.tag.iter().map(|t| t.as_deref()).collect();
-    let tag_rank = rank_map(tags.iter().zip(&layout.ghost).filter(|(_, g)| !**g).filter_map(|(t, _)| *t));
-    let folder_rank = rank_map(folders.iter().zip(&layout.ghost).filter(|(_, g)| !**g).filter_map(|(f, _)| *f));
+    let tag_rank = rank_map(
+        tags.iter()
+            .zip(&layout.ghost)
+            .filter(|(_, g)| !**g)
+            .filter_map(|(t, _)| *t),
+    );
+    let folder_rank = rank_map(
+        folders
+            .iter()
+            .zip(&layout.ghost)
+            .filter(|(_, g)| !**g)
+            .filter_map(|(f, _)| *f),
+    );
     let age = age_stats(&layout.mtime);
-    let recency_days = if cfg.recency_days == 0 { 7.0 } else { f64::from(cfg.recency_days) };
+    let recency_days = if cfg.recency_days == 0 {
+        7.0
+    } else {
+        f64::from(cfg.recency_days)
+    };
     let focus = focus_set(graph, layout, cfg, ctx.now_ms);
     let in_focus = |i: usize| focus.as_ref().is_none_or(|f| f[i]);
 
@@ -213,7 +275,9 @@ pub fn derive_look(graph: &Graph, layout: &LayoutGraph, cfg: &Config, ctx: &Look
             },
             // Tag and recency both colour by tag; recency also dims stale notes.
             NodeColorMode::Tag | NodeColorMode::Recency => {
-                let custom = tags[i].and_then(|t| cfg.tag_colors.get(t)).and_then(|h| rgb(h));
+                let custom = tags[i]
+                    .and_then(|t| cfg.tag_colors.get(t))
+                    .and_then(|h| rgb(h));
                 let from_palette = match (tags[i], &palette) {
                     (Some(t), Some(p)) => Some(p[tag_rank.get(t).copied().unwrap_or(0) % p.len()]),
                     _ => None,
@@ -246,7 +310,11 @@ pub fn derive_look(graph: &Graph, layout: &LayoutGraph, cfg: &Config, ctx: &Look
             let (s, t) = (s as usize, t as usize);
             // Links take their source note's colour (the web version's fallback to
             // the target never triggers: every note has a colour).
-            let color = if tune.edge_coloring { rgb_base[s] } else { accent };
+            let color = if tune.edge_coloring {
+                rgb_base[s]
+            } else {
+                accent
+            };
             let importance = f64::from(node_importance[s].max(node_importance[t]));
             let mut alpha = cfg.link_opacity * tune.link_opacity_scale * (0.3 + importance * 0.7);
             if dim[s] && dim[t] {
@@ -300,7 +368,9 @@ pub fn derive_look(graph: &Graph, layout: &LayoutGraph, cfg: &Config, ctx: &Look
     let labels = if label_count == 0 {
         Vec::new()
     } else {
-        let mut idx: Vec<usize> = (0..n).filter(|&i| !layout.ghost[i] && in_focus(i)).collect();
+        let mut idx: Vec<usize> = (0..n)
+            .filter(|&i| !layout.ghost[i] && in_focus(i))
+            .collect();
         match cfg.label_source {
             LabelSource::Recent => {
                 idx.retain(|&i| layout.mtime[i] > 0.0);
@@ -313,7 +383,11 @@ pub fn derive_look(graph: &Graph, layout: &LayoutGraph, cfg: &Config, ctx: &Look
         }
         idx.truncate(MAX_LABEL_CANDIDATES);
         idx.into_iter()
-            .map(|i| LabelPick { node: i as u32, text: label_text(graph, layout, i), importance: node_importance[i] })
+            .map(|i| LabelPick {
+                node: i as u32,
+                text: label_text(graph, layout, i),
+                importance: node_importance[i],
+            })
             .collect()
     };
 
@@ -332,7 +406,11 @@ pub fn derive_look(graph: &Graph, layout: &LayoutGraph, cfg: &Config, ctx: &Look
 }
 
 fn pick_hex<'a>(preferred: &'a str, fallback: &'a str) -> &'a str {
-    if rgb(preferred).is_some() { preferred } else { fallback }
+    if rgb(preferred).is_some() {
+        preferred
+    } else {
+        fallback
+    }
 }
 
 fn rgb_f32(c: Rgb) -> [f32; 3] {
@@ -346,7 +424,11 @@ fn rgba(c: Rgb, alpha: f32) -> [f32; 4] {
 
 /// Note title, truncated like the web version (28 characters with an ellipsis).
 fn label_text(graph: &Graph, layout: &LayoutGraph, i: usize) -> String {
-    let title = graph.nodes.get(i).and_then(|n| n.label.as_deref()).unwrap_or(&layout.id[i]);
+    let title = graph
+        .nodes
+        .get(i)
+        .and_then(|n| n.label.as_deref())
+        .unwrap_or(&layout.id[i]);
     if title.chars().count() > LABEL_MAX_CHARS {
         let mut s: String = title.chars().take(LABEL_MAX_CHARS - 1).collect();
         s.push('…');
@@ -363,8 +445,14 @@ fn rank_map<'a>(values: impl Iterator<Item = &'a str>) -> HashMap<&'a str, usize
         *counts.entry(v).or_insert(0) += 1;
     }
     let mut list: Vec<(&str, usize)> = counts.into_iter().collect();
-    list.sort_by(|a, b| b.1.cmp(&a.1).then_with(|| a.0.encode_utf16().cmp(b.0.encode_utf16())));
-    list.into_iter().enumerate().map(|(i, (v, _))| (v, i)).collect()
+    list.sort_by(|a, b| {
+        b.1.cmp(&a.1)
+            .then_with(|| a.0.encode_utf16().cmp(b.0.encode_utf16()))
+    });
+    list.into_iter()
+        .enumerate()
+        .map(|(i, (v, _))| (v, i))
+        .collect()
 }
 
 /// Oldest and newest non-zero mtime, when they differ.
@@ -389,12 +477,18 @@ fn age_bucket(stats: Option<(f64, f64)>, mtime: f64) -> usize {
 }
 
 fn node_days(mtime: f64, now_ms: f64) -> f64 {
-    if mtime == 0.0 { 9999.0 } else { ((now_ms - mtime) / DAY_MS).max(0.0) }
+    if mtime == 0.0 {
+        9999.0
+    } else {
+        ((now_ms - mtime) / DAY_MS).max(0.0)
+    }
 }
 
 /// JavaScript's `hashStr`: `h = h * 31 + code unit`, wrapping in 32 bits.
 fn hash_str(s: &str) -> i32 {
-    s.encode_utf16().fold(0i32, |h, c| h.wrapping_shl(5).wrapping_sub(h).wrapping_add(i32::from(c)))
+    s.encode_utf16().fold(0i32, |h, c| {
+        h.wrapping_shl(5).wrapping_sub(h).wrapping_add(i32::from(c))
+    })
 }
 
 /// Deterministic per-folder colour (`folderColor`): hue from the name's hash.
@@ -419,7 +513,11 @@ fn hsl_to_rgb(h: f64, s: f64, l: f64) -> Rgb {
 fn luminance(c: Rgb) -> f64 {
     let lin = |v: u8| {
         let s = f64::from(v) / 255.0;
-        if s <= 0.03928 { s / 12.92 } else { ((s + 0.055) / 1.055).powf(2.4) }
+        if s <= 0.03928 {
+            s / 12.92
+        } else {
+            ((s + 0.055) / 1.055).powf(2.4)
+        }
     };
     0.2126 * lin(c[0]) + 0.7152 * lin(c[1]) + 0.0722 * lin(c[2])
 }
@@ -442,7 +540,11 @@ fn ensure_contrast(fg: Rgb, bg: Rgb, min: f64) -> Rgb {
     if contrast_ratio(fg, bg) >= min {
         return fg;
     }
-    let target = if luminance(bg) < 0.4 { [255; 3] } else { [0; 3] };
+    let target = if luminance(bg) < 0.4 {
+        [255; 3]
+    } else {
+        [0; 3]
+    };
     let mut t = 0.05;
     while t <= 1.0001 {
         let c = mix(fg, target, t);
@@ -462,9 +564,17 @@ fn focus_set(graph: &Graph, layout: &LayoutGraph, cfg: &Config, now_ms: f64) -> 
     if q.is_empty() || layout.is_empty() {
         return None;
     }
-    let want = if q.eq_ignore_ascii_case("today") { local_day_key(now_ms) } else { q.to_lowercase() };
+    let want = if q.eq_ignore_ascii_case("today") {
+        local_day_key(now_ms)
+    } else {
+        q.to_lowercase()
+    };
     let root = (0..layout.len()).find(|&i| {
-        let title = graph.nodes.get(i).and_then(|n| n.label.as_deref()).unwrap_or(&layout.id[i]);
+        let title = graph
+            .nodes
+            .get(i)
+            .and_then(|n| n.label.as_deref())
+            .unwrap_or(&layout.id[i]);
         layout.id[i].to_lowercase() == want || title.to_lowercase() == want
     })?;
     let neighbours = layout.neighbours();
@@ -500,9 +610,13 @@ fn local_day_key(now_ms: f64) -> String {
         }
         tm
     };
-    format!("{:04}-{:02}-{:02}", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday)
+    format!(
+        "{:04}-{:02}-{:02}",
+        tm.tm_year + 1900,
+        tm.tm_mon + 1,
+        tm.tm_mday
+    )
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -526,11 +640,17 @@ mod tests {
     }
 
     fn ghost(id: &str) -> Node {
-        Node { ghost: true, ..node(id, None, None, None) }
+        Node {
+            ghost: true,
+            ..node(id, None, None, None)
+        }
     }
 
     fn link(s: &str, t: &str) -> Link {
-        Link { source: s.into(), target: t.into() }
+        Link {
+            source: s.into(),
+            target: t.into(),
+        }
     }
 
     /// hub links to a1..a3 (#alpha) and b1 (#beta); b1 links to b2; c (no tag) to ghost g.
@@ -560,7 +680,12 @@ mod tests {
     }
 
     fn look_with(g: &Graph, cfg: &Config, light: bool) -> Look {
-        derive_look(g, &LayoutGraph::from_graph(g), cfg, &LookContext { now_ms: NOW, light })
+        derive_look(
+            g,
+            &LayoutGraph::from_graph(g),
+            cfg,
+            &LookContext { now_ms: NOW, light },
+        )
     }
 
     fn look(cfg: &Config) -> Look {
@@ -589,20 +714,29 @@ mod tests {
 
     #[test]
     fn palette_colours_tags_by_frequency_rank() {
-        let cfg = Config { palette: Palette::Riso, ..Config::default() };
+        let cfg = Config {
+            palette: Palette::Riso,
+            ..Config::default()
+        };
         let l = look(&cfg);
         // alpha (4 notes) ranks 0, beta (2) ranks 1; untagged notes keep the accent.
         assert_eq!(rgb3(l.node_color[0]), hex(RISO[0]));
         assert_eq!(rgb3(l.node_color[4]), hex(RISO[1]));
         assert_eq!(rgb3(l.node_color[6]), hex(ACCENT));
         assert_eq!(rgb3(l.node_color[7]), hex(ACCENT));
-        let cfg = Config { palette: Palette::Viridis, ..Config::default() };
+        let cfg = Config {
+            palette: Palette::Viridis,
+            ..Config::default()
+        };
         assert_eq!(rgb3(look(&cfg).node_color[0]), hex(VIRIDIS[0]));
     }
 
     #[test]
     fn tag_colors_override_palette() {
-        let mut cfg = Config { palette: Palette::Neon, ..Config::default() };
+        let mut cfg = Config {
+            palette: Palette::Neon,
+            ..Config::default()
+        };
         cfg.tag_colors.insert("beta".into(), "#123456".into());
         cfg.tag_colors.insert("alpha".into(), "not a colour".into());
         let l = look(&cfg);
@@ -614,7 +748,10 @@ mod tests {
 
     #[test]
     fn age_mode_buckets_by_vault_time_span() {
-        let cfg = Config { node_color_mode: NodeColorMode::Age, ..Config::default() };
+        let cfg = Config {
+            node_color_mode: NodeColorMode::Age,
+            ..Config::default()
+        };
         let l = look(&cfg);
         // Newest (hub) is fresh green, oldest (b1) and notes without mtime are stale red.
         assert_eq!(rgb3(l.node_color[0]), hex(AGE_PALETTE[0]));
@@ -623,20 +760,29 @@ mod tests {
         assert_eq!(rgb3(l.node_color[7]), hex(AGE_PALETTE[4]));
         // a3 at 40 days of a 1..100 day span: t = 0.606, bucket floor(0.394 * 5) = 1.
         assert_eq!(rgb3(l.node_color[3]), hex(AGE_PALETTE[1]));
-        let cfg = Config { palette: Palette::Metro, ..cfg };
+        let cfg = Config {
+            palette: Palette::Metro,
+            ..cfg
+        };
         assert_eq!(rgb3(look(&cfg).node_color[4]), hex(METRO[4]));
     }
 
     #[test]
     fn folder_mode_hashes_or_uses_palette() {
-        let cfg = Config { node_color_mode: NodeColorMode::Folder, ..Config::default() };
+        let cfg = Config {
+            node_color_mode: NodeColorMode::Folder,
+            ..Config::default()
+        };
         let l = look(&cfg);
         assert_eq!(rgb3(l.node_color[0]), rgb_f32(folder_color("Projects")));
         assert_eq!(rgb3(l.node_color[0]), rgb3(l.node_color[1]));
         assert_ne!(rgb3(l.node_color[0]), rgb3(l.node_color[2]));
         assert_eq!(rgb3(l.node_color[3]), hex(ACCENT));
         // Areas (2 notes) and Projects (2 notes) tie on count; ties go by name.
-        let cfg = Config { palette: Palette::Earth, ..cfg };
+        let cfg = Config {
+            palette: Palette::Earth,
+            ..cfg
+        };
         let l = look(&cfg);
         assert_eq!(rgb3(l.node_color[2]), hex(EARTH[0]));
         assert_eq!(rgb3(l.node_color[0]), hex(EARTH[1]));
@@ -654,13 +800,19 @@ mod tests {
 
     #[test]
     fn recency_mode_dims_stale_notes_and_ghosts() {
-        let cfg = Config { node_color_mode: NodeColorMode::Recency, recency_days: 7, ..Config::default() };
+        let cfg = Config {
+            node_color_mode: NodeColorMode::Recency,
+            recency_days: 7,
+            ..Config::default()
+        };
         let l = look(&cfg);
         let fresh = l.node_color[1][3]; // a1, 2 days old
         let stale = l.node_color[2][3]; // a2, 30 days old
         assert!((stale - (0.55 + l.node_importance[2] * 0.35) * 0.22).abs() < 1e-6);
         assert!(fresh > 0.55);
-        assert!((l.node_color[7][3] - (0.55 + l.node_importance[7] * 0.35) * 0.35 * 0.22).abs() < 1e-6);
+        assert!(
+            (l.node_color[7][3] - (0.55 + l.node_importance[7] * 0.35) * 0.35 * 0.22).abs() < 1e-6
+        );
         // Colour still comes from the tag.
         assert_eq!(rgb3(l.node_color[1]), hex(ACCENT));
         // A link between two stale notes is dimmed to a quarter; c–g are both stale.
@@ -699,7 +851,11 @@ mod tests {
         // alpha = linkOpacity * (0.3 + max importance * 0.7)
         assert!((l.edge_color[0][3] - 0.18).abs() < 1e-6);
         assert!((l.edge_color[4][3] - 0.18 * (0.3 + 0.5 * 0.7)).abs() < 1e-6);
-        let cfg = Config { edge_coloring: false, link_opacity: 0.5, ..cfg };
+        let cfg = Config {
+            edge_coloring: false,
+            link_opacity: 0.5,
+            ..cfg
+        };
         let l = look(&cfg);
         assert_eq!(rgb3(l.edge_color[4]), hex(ACCENT));
         assert!((l.edge_color[0][3] - 0.5).abs() < 1e-6);
@@ -717,10 +873,18 @@ mod tests {
 
     #[test]
     fn accent_gets_a_contrast_floor() {
-        let cfg = Config { accent: "#111111".into(), background: "#0a0a0f".into(), ..Config::default() };
+        let cfg = Config {
+            accent: "#111111".into(),
+            background: "#0a0a0f".into(),
+            ..Config::default()
+        };
         let c = rgb3(look(&cfg).node_color[6]);
         assert_ne!(c, hex("#111111"));
-        let c = [(c[0] * 255.0).round() as u8, (c[1] * 255.0).round() as u8, (c[2] * 255.0).round() as u8];
+        let c = [
+            (c[0] * 255.0).round() as u8,
+            (c[1] * 255.0).round() as u8,
+            (c[2] * 255.0).round() as u8,
+        ];
         assert!(contrast_ratio(c, [10, 10, 15]) >= 1.8);
     }
 
@@ -735,7 +899,12 @@ mod tests {
     fn hub_labels_most_important_first() {
         let mut g = sample();
         g.nodes[0].label = Some("The Hub".into());
-        let cfg = Config { hub_labels: true, hub_label_count: 2, label_min_importance: 0.3, ..Config::default() };
+        let cfg = Config {
+            hub_labels: true,
+            hub_label_count: 2,
+            label_min_importance: 0.3,
+            ..Config::default()
+        };
         let l = look_with(&g, &cfg, false);
         assert_eq!(l.label_count, 2);
         let picks: Vec<(u32, &str)> = l.labels.iter().map(|p| (p.node, p.text.as_str())).collect();
@@ -746,7 +915,11 @@ mod tests {
 
     #[test]
     fn recent_labels_newest_first() {
-        let cfg = Config { hub_labels: true, label_source: LabelSource::Recent, ..Config::default() };
+        let cfg = Config {
+            hub_labels: true,
+            label_source: LabelSource::Recent,
+            ..Config::default()
+        };
         let l = look(&cfg);
         let order: Vec<u32> = l.labels.iter().map(|p| p.node).collect();
         // Ghosts and notes without mtime are left out.
@@ -757,7 +930,10 @@ mod tests {
     fn long_titles_are_truncated() {
         let mut g = sample();
         g.nodes[0].label = Some("a".repeat(40));
-        let cfg = Config { hub_labels: true, ..Config::default() };
+        let cfg = Config {
+            hub_labels: true,
+            ..Config::default()
+        };
         let l = look_with(&g, &cfg, false);
         assert_eq!(l.labels[0].text.chars().count(), 28);
         assert!(l.labels[0].text.ends_with('…'));
@@ -767,18 +943,27 @@ mod tests {
     fn large_vaults_get_fewer_labels_and_no_halos() {
         let n = 12_000;
         let g = Graph {
-            nodes: (0..n).map(|i| node(&format!("n{i}"), Some("t"), None, None)).collect(),
+            nodes: (0..n)
+                .map(|i| node(&format!("n{i}"), Some("t"), None, None))
+                .collect(),
             links: (1..n).map(|i| link("n0", &format!("n{i}"))).collect(),
             ..Graph::default()
         };
-        let cfg = Config { hub_labels: true, hub_label_count: 5, ..Config::default() };
+        let cfg = Config {
+            hub_labels: true,
+            hub_label_count: 5,
+            ..Config::default()
+        };
         let l = look_with(&g, &cfg, false);
         assert_eq!(l.label_count, 2);
         assert_eq!(l.labels.len(), 1); // only n0 clears the 0.78 floor
         assert_eq!(l.halo_alpha, 0.0);
         assert!(l.halo_color.is_empty() && l.halo_group.iter().all(Option::is_none));
         assert!((l.edge_color[0][3] - 0.18 * 0.32).abs() < 1e-6);
-        let cfg = Config { auto_scale_large_vaults: false, ..cfg };
+        let cfg = Config {
+            auto_scale_large_vaults: false,
+            ..cfg
+        };
         let l = look_with(&g, &cfg, false);
         assert_eq!(l.label_count, 5);
         assert!((l.halo_alpha - 0.11).abs() < 1e-6);
@@ -793,7 +978,10 @@ mod tests {
         assert_eq!(l.halo_color, vec![hex("#ff0000")]);
         assert_eq!(&l.halo_group[..4], &[Some(0); 4]);
         assert!(l.halo_group[4..].iter().all(Option::is_none)); // beta has only two notes
-        let cfg = Config { cluster_halos: false, ..cfg };
+        let cfg = Config {
+            cluster_halos: false,
+            ..cfg
+        };
         let l = look(&cfg);
         assert_eq!(l.halo_alpha, 0.0);
         assert!(l.halo_color.is_empty());
@@ -801,17 +989,28 @@ mod tests {
 
     #[test]
     fn focus_hides_notes_beyond_the_hops() {
-        let cfg = Config { focus_note: "B2".into(), focus_hops: 1, hub_labels: true, ..Config::default() };
+        let cfg = Config {
+            focus_note: "B2".into(),
+            focus_hops: 1,
+            hub_labels: true,
+            ..Config::default()
+        };
         let l = look(&cfg);
         let visible: Vec<usize> = (0..8).filter(|&i| l.node_color[i][3] > 0.0).collect();
         assert_eq!(visible, vec![4, 5]);
         let lit: Vec<usize> = (0..6).filter(|&i| l.edge_color[i][3] > 0.0).collect();
         assert_eq!(lit, vec![4]);
         assert!(l.labels.iter().all(|p| p.node == 4 || p.node == 5));
-        let cfg = Config { focus_hops: 2, ..cfg };
+        let cfg = Config {
+            focus_hops: 2,
+            ..cfg
+        };
         assert!(look(&cfg).node_color[0][3] > 0.0);
         // An unknown note means no focus at all.
-        let cfg = Config { focus_note: "nope".into(), ..cfg };
+        let cfg = Config {
+            focus_note: "nope".into(),
+            ..cfg
+        };
         assert!(look(&cfg).node_color.iter().all(|c| c[3] > 0.0));
     }
 
@@ -821,15 +1020,28 @@ mod tests {
         assert_eq!(key.len(), 10);
         let mut g = sample();
         g.nodes.push(node(&key, None, None, None));
-        let cfg = Config { focus_note: "today".into(), focus_hops: 1, ..Config::default() };
+        let cfg = Config {
+            focus_note: "today".into(),
+            focus_hops: 1,
+            ..Config::default()
+        };
         let l = look_with(&g, &cfg, false);
-        let visible: Vec<usize> = (0..g.nodes.len()).filter(|&i| l.node_color[i][3] > 0.0).collect();
+        let visible: Vec<usize> = (0..g.nodes.len())
+            .filter(|&i| l.node_color[i][3] > 0.0)
+            .collect();
         assert_eq!(visible, vec![8]);
     }
 
     #[test]
     fn empty_graph() {
-        let l = look_with(&Graph::default(), &Config { hub_labels: true, ..Config::default() }, false);
+        let l = look_with(
+            &Graph::default(),
+            &Config {
+                hub_labels: true,
+                ..Config::default()
+            },
+            false,
+        );
         assert!(l.node_color.is_empty() && l.labels.is_empty() && l.halo_color.is_empty());
     }
 }

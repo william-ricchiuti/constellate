@@ -2,7 +2,8 @@
 //!   cargo run --release -p vw-render --example tile_png -- <out.png> <columns> <scale-down> <in.png>...
 fn main() {
     let a: Vec<String> = std::env::args().skip(1).collect();
-    let (out, cols, k): (&str, usize, usize) = (&a[0], a[1].parse().unwrap(), a[2].parse().unwrap());
+    let (out, cols, k): (&str, usize, usize) =
+        (&a[0], a[1].parse().unwrap(), a[2].parse().unwrap());
     let imgs: Vec<(u32, u32, Vec<u8>)> = a[3..]
         .iter()
         .map(|p| {
@@ -11,7 +12,10 @@ fn main() {
             let mut buf = vec![0; r.output_buffer_size().unwrap()];
             let info = r.next_frame(&mut buf).unwrap();
             let ch = info.color_type.samples();
-            let rgb: Vec<u8> = buf[..info.buffer_size()].chunks(ch).flat_map(|px| [px[0], px[1], px[2]]).collect();
+            let rgb: Vec<u8> = buf[..info.buffer_size()]
+                .chunks(ch)
+                .flat_map(|px| [px[0], px[1], px[2]])
+                .collect();
             (info.width, info.height, rgb)
         })
         .collect();
@@ -43,5 +47,8 @@ fn main() {
     let f = std::io::BufWriter::new(std::fs::File::create(out).unwrap());
     let mut enc = png::Encoder::new(f, w as u32, h as u32);
     enc.set_color(png::ColorType::Rgb);
-    enc.write_header().unwrap().write_image_data(&canvas).unwrap();
+    enc.write_header()
+        .unwrap()
+        .write_image_data(&canvas)
+        .unwrap();
 }
