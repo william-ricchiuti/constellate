@@ -108,7 +108,7 @@ way you did for Developer ID:
 ### 3. Make the app record in App Store Connect
 
 1. appstoreconnect.apple.com > **Apps** > **+** (top left) > **New App**.
-2. Platform **macOS**; Name **Constellate** (if taken, see `listing.md`); Primary language
+2. Platform **macOS**; Name **Constellate: Graph Wallpaper** (plain "Constellate" is taken); Primary language
    **English (U.S.)**; Bundle ID **com.williamricchiuti.vaultwallpaper** (it appears in the
    list once Xcode or you registered it); SKU **vaultwallpaper-mac**; User Access **Full
    Access**. Click **Create**.
@@ -248,7 +248,7 @@ App Store Connect, and the last steps publish.
    App ID and your Apple Distribution certificate, name it "Constellate Mac App Store",
    download the `.provisionprofile`.
 4. **App record** (App Store Connect > Apps > + > New App): platform macOS, name
-   "Constellate" (if taken, see `listing.md`), primary language English (U.S.), bundle ID
+   "Constellate: Graph Wallpaper" (plain "Constellate" is taken), primary language English (U.S.), bundle ID
    `com.williamricchiuti.vaultwallpaper`, SKU `vaultwallpaper-mac`, full access.
 5. **Agreements**: Business > the Free Apps agreement is active by default; nothing to sign for
    a free app beyond the Apple Developer Program License Agreement.
@@ -341,5 +341,6 @@ App Store Connect, and the last steps publish.
     must print nothing. Still set through KVC, all public `WKPreferences` properties:
     `tabFocusesLinks` and `inactiveSchedulingPolicy` (the latter only if the app asks for a
     background-throttling policy, which it doesn't).
-- **Name:** "Constellate" may be taken on the store; fallbacks are in `listing.md`. Don't
+- **Name:** the store name is "Constellate: Graph Wallpaper" (plain "Constellate" is taken);
+  the app on the Mac is still "Constellate". Don't
   put "Obsidian" in the name or keywords (someone else's trademark, guideline 5.2.1).

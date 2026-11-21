@@ -7,7 +7,7 @@ are for this text. Everything marked **TODO** needs William.
 
 | Field | Value |
 |---|---|
-| Name (30) | William's pick, **Constellate: Note Graph Wallpaper**, is 33 characters: 3 over the limit. Under 30: "Constellate: Graph Wallpaper" (28), "Constellate: Note Graph" (23), or just "Constellate" (11) with the subtitle carrying the rest. **TODO** William: choose |
+| Name (30) | **Constellate: Graph Wallpaper** (28). Plain "Constellate" is taken on the store; the app itself is still called Constellate on the Mac |
 | Subtitle (30) | **Notes or any folder as a graph** (30). Fallback, notes only: "Your notes, as a living graph" (29) |
 | Bundle ID | `com.williamricchiuti.vaultwallpaper` |
 | SKU | `vaultwallpaper-mac` |
