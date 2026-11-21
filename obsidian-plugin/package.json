@@ -1,8 +1,8 @@
 {
-  "name": "vault-wallpaper-obsidian",
+  "name": "constellate-obsidian",
   "version": "0.1.0",
   "private": true,
-  "description": "Obsidian plugin that tells Vault Wallpaper which note is open",
+  "description": "Obsidian plugin that tells Constellate which note is open",
   "main": "main.js",
   "scripts": {
     "dev": "node esbuild.config.mjs",

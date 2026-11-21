@@ -147,7 +147,7 @@ impl Backend {
     }
 
     /// `custom-presets.json` next to the config file, as on the web. For the default
-    /// config that is `~/Library/Application Support/Vault Wallpaper/custom-presets.json`.
+    /// config that is `~/Library/Application Support/Constellate/custom-presets.json`.
     pub fn presets_path(&self) -> PathBuf {
         let dir = self
             .config_path

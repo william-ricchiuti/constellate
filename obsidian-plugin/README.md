@@ -1,6 +1,6 @@
-# Vault Wallpaper for Obsidian
+# Constellate for Obsidian
 
-An optional companion plugin. It tells the Vault Wallpaper app which note you have
+An optional companion plugin. It tells the Constellate app which note you have
 open, so the wallpaper can highlight it: the open note grows, gets a label and its
 direct neighbours brighten, while the rest of the graph dims a little. Saving the
 open note starts the theme's edit burst (Ink & Paper's ink bleed) for exactly that
@@ -32,10 +32,11 @@ This produces `main.js` next to `manifest.json`.
 This plugin is not in the Obsidian community store. Copy it into the vault yourself:
 
 1. Make the folder `<vault>/.obsidian/plugins/vault-wallpaper/`. The folder name
-   must be exactly `vault-wallpaper`: the app looks for the state file there.
+   must be exactly `vault-wallpaper` (the plugin id, kept from the app's old name):
+   the app looks for the state file there.
 2. Copy `main.js` and `manifest.json` into it.
 3. In Obsidian: Settings → Community plugins. Turn off Restricted mode if it is on,
-   then enable **Vault Wallpaper** (use the refresh button if it doesn't show up).
+   then enable **Constellate** (use the refresh button if it doesn't show up).
 4. Open a note. `state.json` appears in the plugin folder, and the wallpaper app
    (pointed at the same vault) highlights the note within a fraction of a second.
 

@@ -1,4 +1,4 @@
-// Vault Wallpaper companion: tells the wallpaper app which note you have open.
+// Constellate companion: tells the wallpaper app which note you have open.
 //
 // It writes one small JSON file inside the vault,
 //   <vault>/.obsidian/plugins/vault-wallpaper/state.json
@@ -40,7 +40,7 @@ interface State {
   updated: number;
 }
 
-export default class VaultWallpaperPlugin extends Plugin {
+export default class ConstellatePlugin extends Plugin {
   settings: Settings = { enabled: true };
   private saved: string | null = null;
   private savedAt: number | null = null;
@@ -52,7 +52,7 @@ export default class VaultWallpaperPlugin extends Plugin {
 
   async onload() {
     this.settings = Object.assign({ enabled: true }, await this.loadData());
-    this.addSettingTab(new VaultWallpaperSettingTab(this.app, this));
+    this.addSettingTab(new ConstellateSettingTab(this.app, this));
 
     this.registerEvent(this.app.workspace.on("file-open", () => this.schedule()));
     this.registerEvent(this.app.workspace.on("active-leaf-change", () => this.schedule()));
@@ -145,15 +145,15 @@ export default class VaultWallpaperPlugin extends Plugin {
         await fs.writeFile(tmp, body, "utf8");
         await fs.rename(tmp, target);
       })
-      .catch((e) => console.error("vault-wallpaper: could not write state.json", e));
+      .catch((e) => console.error("constellate: could not write state.json", e));
     return this.writing;
   }
 }
 
-class VaultWallpaperSettingTab extends PluginSettingTab {
+class ConstellateSettingTab extends PluginSettingTab {
   constructor(
     app: App,
-    private plugin: VaultWallpaperPlugin,
+    private plugin: ConstellatePlugin,
   ) {
     super(app, plugin);
   }

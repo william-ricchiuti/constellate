@@ -1,6 +1,6 @@
 //! Opens just the settings window against a throwaway config, for testing it alone.
 //!
-//!   cargo run -p vault-wallpaper --example settings [-- <config.json>]
+//!   cargo run -p constellate --example settings [-- <config.json>]
 //!
 //! Without an argument it uses a fresh `config.json` in a temp folder (printed at
 //! start). It also runs the config watcher, the way the app does, and prints each change
@@ -11,8 +11,8 @@
 //! The page's `window.ipc.postMessage(text)` prints to stderr, so a script can report.
 //! Two ready-made checks (run each against a fresh config; they change it):
 //!
-//!   VW_SETTINGS_SCRIPT=crates/app/examples/settings-checks/controls.js cargo run -p vault-wallpaper --example settings
-//!   VW_SETTINGS_SCRIPT=crates/app/examples/settings-checks/themes.js cargo run -p vault-wallpaper --example settings
+//!   VW_SETTINGS_SCRIPT=crates/app/examples/settings-checks/controls.js cargo run -p constellate --example settings
+//!   VW_SETTINGS_SCRIPT=crates/app/examples/settings-checks/themes.js cargo run -p constellate --example settings
 //!
 //! `controls.js` drives every control type and prints what reached the file; note that its
 //! Copy JSON step replaces the clipboard.
@@ -21,7 +21,7 @@
 //! `folder`; `sample` for "no folder chosen"), plus `VW_SETTINGS_CAPPED=1` for the cap
 //! warning. `folder.js` checks that section (run it with the default kind):
 //!
-//!   VW_SETTINGS_CAPPED=1 VW_SETTINGS_SCRIPT=crates/app/examples/settings-checks/folder.js cargo run -p vault-wallpaper --example settings
+//!   VW_SETTINGS_CAPPED=1 VW_SETTINGS_SCRIPT=crates/app/examples/settings-checks/folder.js cargo run -p constellate --example settings
 
 #[allow(dead_code)]
 #[path = "../src/settings/mod.rs"]

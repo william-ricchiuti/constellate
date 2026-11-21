@@ -1,9 +1,9 @@
-//! Vault Wallpaper: the link graph of your notes (an Obsidian vault, other notes apps, or
+//! Constellate: the link graph of your notes (an Obsidian vault, other notes apps, or
 //! any folder), drawn behind the desktop icons. With no folder chosen it shows a sample.
 //!
-//!   vault-wallpaper [--vault <path>] [--config <file>] [--front] [--cache <file>]
+//!   constellate [--vault <path>] [--config <file>] [--front] [--cache <file>]
 //!
-//! Settings come from `~/Library/Application Support/Vault Wallpaper/config.json`
+//! Settings come from `~/Library/Application Support/Constellate/config.json`
 //! (the web version's format) and are reloaded when the file changes; `--vault`
 //! overrides the vault path.
 //!
@@ -203,8 +203,8 @@ impl ScreenError {
     /// What the alert says when this leaves the app with nothing to draw on.
     fn message(&self) -> &'static str {
         match self {
-            ScreenError::Gpu | ScreenError::Surface(_) => "Vault Wallpaper needs a Mac with Metal graphics.",
-            ScreenError::Window(_) => "Vault Wallpaper couldn't open its wallpaper window.",
+            ScreenError::Gpu | ScreenError::Surface(_) => "Constellate needs a Mac with Metal graphics.",
+            ScreenError::Window(_) => "Constellate couldn't open its wallpaper window.",
         }
     }
 
@@ -222,13 +222,28 @@ struct Args {
 
 fn support_dir() -> PathBuf {
     let home = std::env::var_os("HOME").map(PathBuf::from).unwrap_or_default();
-    home.join("Library/Application Support/Vault Wallpaper")
+    home.join("Library/Application Support").join(config::APP_DIR)
+}
+
+/// The app was "Vault Wallpaper" up to 1.0.0-beta.1: moves its Application Support folder
+/// (settings, layout cache, presets) and its Pictures export folder to the new names, once.
+/// In the App Store build `$HOME` is the sandbox container, so this moves the container's
+/// copies.
+fn migrate_old_folders() {
+    let Some(home) = std::env::var_os("HOME").filter(|h| !h.is_empty()).map(PathBuf::from) else { return };
+    for (old, new) in config::renamed_dirs(&home) {
+        match config::migrate_dir(&old, &new) {
+            Ok(true) => eprintln!("moved {} to {}", old.display(), new.display()),
+            Ok(false) => {}
+            Err(e) => eprintln!("could not move {} to {}: {e}", old.display(), new.display()),
+        }
+    }
 }
 
 /// First run: the longest the folder picker waits for the sample graph to be drawn.
 const FIRST_RUN_PICK_FALLBACK: Duration = Duration::from_secs(5);
 
-const USAGE: &str = "usage: vault-wallpaper [--vault <path>] [--config <file>] [--front] [--cache <file>]";
+const USAGE: &str = "usage: constellate [--vault <path>] [--config <file>] [--front] [--cache <file>]";
 
 fn parse_args() -> Args {
     let defaults = Args {
@@ -507,7 +522,7 @@ impl App {
                 let _ = proxy.send_event(AppEvent::Layout(epoch, Box::new(f)));
             },
         )
-        .unwrap_or_else(|e| desktop::fatal("Vault Wallpaper couldn't start.", &format!("could not start the layout thread: {e}")));
+        .unwrap_or_else(|e| desktop::fatal("Constellate couldn't start.", &format!("could not start the layout thread: {e}")));
         // Dropping the old engine ends its thread. The new one numbers its runs from 1
         // again; the picture on screen stays until the new graph's first frame.
         self.engine = Some(engine);
@@ -544,7 +559,7 @@ impl App {
         }
         self.vault_status = text.is_some();
         if let Some(m) = &self.menu {
-            m.set_status(text.as_deref().unwrap_or("Vault Wallpaper"));
+            m.set_status(text.as_deref().unwrap_or("Constellate"));
         }
     }
 
@@ -584,7 +599,7 @@ impl App {
                     // A cancelled panel leaves the same state, so the menu says why the
                     // wallpaper is empty and Choose Folder… fixes it. A pick reopens the
                     // vault, and the successful open clears the status.
-                    if !ask || !self.choose_vault(Some(&path), &format!("Allow Vault Wallpaper to read “{name}”: select it and click Open")) {
+                    if !ask || !self.choose_vault(Some(&path), &format!("Allow Constellate to read “{name}”: select it and click Open")) {
                         self.vault_problem(&path, VaultProblem::NoAccess);
                     }
                     return;
@@ -887,7 +902,7 @@ impl App {
     /// Opens the wallpaper window for one display. The first window also picks the GPU.
     fn add_screen(&mut self, event_loop: &ActiveEventLoop, geom: Geom) -> Result<(), ScreenError> {
         let attrs = Window::default_attributes()
-            .with_title("Vault Wallpaper")
+            .with_title("Constellate")
             .with_decorations(false)
             .with_resizable(false)
             .with_position(LogicalPosition::new(geom.x, geom.y))
@@ -1373,7 +1388,7 @@ impl App {
         }
     }
 
-    /// Renders the first screen's current picture to a PNG in ~/Pictures/Vault Wallpaper.
+    /// Renders the first screen's current picture to a PNG in ~/Pictures/Constellate.
     fn export_png(&self) -> Result<PathBuf, String> {
         let (Some(gpu), Some(screen), Some(sh)) = (&self.gpu, self.screens.first(), &self.shown) else {
             return Err("nothing to export yet".into());
@@ -1388,11 +1403,11 @@ impl App {
         // In the sandbox HOME is the app's container, whose Pictures is a link to the
         // real ~/Pictures (allowed by the pictures entitlement); resolve it so Finder
         // shows the real folder.
-        let dir = home.join("Pictures/Vault Wallpaper");
+        let dir = home.join("Pictures").join(config::APP_DIR);
         std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
         let dir = dir.canonicalize().unwrap_or(dir);
         let stamp = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map_or(0, |d| d.as_secs());
-        let path = dir.join(format!("vault-wallpaper-{stamp}.png"));
+        let path = dir.join(format!("constellate-{stamp}.png"));
         write_png(&path, size, &rgba).map_err(|e| e.to_string())?;
         Ok(path)
     }
@@ -1567,12 +1582,13 @@ impl ApplicationHandler<AppEvent> for App {
 }
 
 fn main() {
+    migrate_old_folders();
     let args = parse_args();
     let cfg = load_config(&args.config);
     let event_loop = EventLoop::<AppEvent>::with_user_event()
         .with_activation_policy(ActivationPolicy::Accessory)
         .build()
-        .unwrap_or_else(|e| desktop::fatal("Vault Wallpaper couldn't start.", &e.to_string()));
+        .unwrap_or_else(|e| desktop::fatal("Constellate couldn't start.", &e.to_string()));
     let mut app = App {
         proxy: event_loop.create_proxy(),
         theme: Theme::from_config(&cfg),
@@ -1616,7 +1632,7 @@ fn main() {
     };
     app.edit_burst = app.theme.edit_burst(&app.cfg);
     if let Err(e) = event_loop.run_app(&mut app) {
-        desktop::fatal("Vault Wallpaper stopped unexpectedly.", &e.to_string());
+        desktop::fatal("Constellate stopped unexpectedly.", &e.to_string());
     }
 }
 
@@ -1695,8 +1711,8 @@ mod tests {
 
     #[test]
     fn no_gpu_says_metal() {
-        assert_eq!(ScreenError::Gpu.message(), "Vault Wallpaper needs a Mac with Metal graphics.");
-        assert_eq!(ScreenError::Surface("x".into()).message(), "Vault Wallpaper needs a Mac with Metal graphics.");
+        assert_eq!(ScreenError::Gpu.message(), "Constellate needs a Mac with Metal graphics.");
+        assert_eq!(ScreenError::Surface("x".into()).message(), "Constellate needs a Mac with Metal graphics.");
         assert!(ScreenError::Window("x".into()).message().contains("window"));
     }
 }

@@ -377,6 +377,32 @@ dependencies = [
 ]
 
 [[package]]
+name = "constellate"
+version = "1.0.0-beta.1"
+dependencies = [
+ "block2 0.6.2",
+ "objc2 0.6.5",
+ "objc2-app-kit 0.3.2",
+ "objc2-core-foundation",
+ "objc2-core-graphics",
+ "objc2-foundation 0.3.2",
+ "objc2-io-surface",
+ "objc2-metal 0.3.2",
+ "objc2-quartz-core 0.3.2",
+ "objc2-service-management",
+ "raw-window-handle",
+ "rfd",
+ "serde_json",
+ "tempfile",
+ "tray-icon",
+ "vw-core",
+ "vw-render",
+ "wgpu",
+ "winit",
+ "wry",
+]
+
+[[package]]
 name = "cookie"
 version = "0.18.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3755,32 +3781,6 @@ name = "utf_types"
 version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3a3b425286980a367278453f3b6d28cdcb134b574e5a35824a6ff5eebad50bb6"
-
-[[package]]
-name = "vault-wallpaper"
-version = "1.0.0-beta.1"
-dependencies = [
- "block2 0.6.2",
- "objc2 0.6.5",
- "objc2-app-kit 0.3.2",
- "objc2-core-foundation",
- "objc2-core-graphics",
- "objc2-foundation 0.3.2",
- "objc2-io-surface",
- "objc2-metal 0.3.2",
- "objc2-quartz-core 0.3.2",
- "objc2-service-management",
- "raw-window-handle",
- "rfd",
- "serde_json",
- "tempfile",
- "tray-icon",
- "vw-core",
- "vw-render",
- "wgpu",
- "winit",
- "wry",
-]
 
 [[package]]
 name = "version-compare"

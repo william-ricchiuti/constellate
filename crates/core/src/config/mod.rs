@@ -19,7 +19,7 @@ use serde_json::Value;
 use crate::layout::{LayoutKind, LayoutOptions};
 use crate::vault::{GraphOptions, SourceKind, VaultOptions};
 
-pub use store::{default_path, import_legacy, load, save};
+pub use store::{APP_DIR, OLD_APP_DIR, default_path, import_legacy, load, migrate_dir, renamed_dirs, save};
 pub use validate::{NODE_SIZES, SOURCE_KINDS, THEMES, is_hex_color, sanitize_file, sanitize_patch};
 pub use watch::{ConfigWatcher, DEBOUNCE, watch};
 

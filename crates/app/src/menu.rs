@@ -31,7 +31,7 @@ impl AppMenu {
     /// event loop). `updates` adds "Check for Updates…" (only when Sparkle is loaded).
     pub fn new(login_enabled: bool, updates: bool, on_event: impl Fn(MenuEvent) + Send + Sync + 'static) -> Option<Self> {
         let menu = Menu::new();
-        let status = MenuItem::new("Vault Wallpaper", false, None);
+        let status = MenuItem::new("Constellate", false, None);
         let pause = CheckMenuItem::new("Pause Wallpaper", true, false, None);
         let settings = MenuItem::new("Settings…", true, None);
         let folder = MenuItem::new("Choose Folder…", true, None);
@@ -40,7 +40,7 @@ impl AppMenu {
         let export = MenuItem::new("Export PNG", true, None);
         let login = CheckMenuItem::new("Start at Login", true, login_enabled, None);
         let check = MenuItem::new("Check for Updates…", true, None);
-        let quit = MenuItem::new("Quit Vault Wallpaper", true, None);
+        let quit = MenuItem::new("Quit Constellate", true, None);
         let sep = PredefinedMenuItem::separator;
         menu.append_items(&[&status, &sep(), &pause, &settings, &folder, &import, &sep(), &export, &config, &login, &sep()]).ok()?;
         if updates {
@@ -62,7 +62,7 @@ impl AppMenu {
         let (rgba, size) = icon_rgba();
         let tray = TrayIconBuilder::new()
             .with_menu(Box::new(menu))
-            .with_tooltip("Vault Wallpaper")
+            .with_tooltip("Constellate")
             .with_icon_templated(Icon::from_rgba(rgba, size, size).ok()?)
             .build()
             .ok()?;

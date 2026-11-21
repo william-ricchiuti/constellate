@@ -154,7 +154,7 @@ fn each_style_draws_where_the_text_is_and_nowhere_else() {
     let scale = 2.0;
     let mut text = TextRenderer::new(&gpu, wgpu::TextureFormat::Rgba8Unorm);
     for (style, name) in [(TextStyle::Badge, "badge"), (TextStyle::Glow, "glow"), (TextStyle::Minimal, "minimal")] {
-        let items = [item("Vault Wallpaper · hubs", [120.0, 20.0], Anchor::TopCenter, style)];
+        let items = [item("Constellate · hubs", [120.0, 20.0], Anchor::TopCenter, style)];
         let img = draw(&gpu, &mut text, &items, size, scale);
         write_crate_png(&img, size, &format!("text-{name}.png"));
 

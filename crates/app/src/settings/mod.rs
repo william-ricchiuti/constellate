@@ -100,7 +100,7 @@ impl SettingsWindow {
         config_path: PathBuf,
     ) -> Result<SettingsWindow, SettingsError> {
         let attrs = Window::default_attributes()
-            .with_title("Vault Wallpaper Settings")
+            .with_title("Constellate Settings")
             .with_inner_size(LogicalSize::new(980.0, 820.0))
             .with_min_inner_size(LogicalSize::new(480.0, 400.0))
             // Shown once its background is set (below), so it never appears white.
