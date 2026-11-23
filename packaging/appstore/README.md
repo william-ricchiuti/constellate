@@ -12,6 +12,7 @@ The direct build (DMG, Homebrew, Sparkle) is unchanged; see [`../README.md`](../
 | `sandbox-check.sh` | guided check of every feature inside the sandbox, on a local ad-hoc build |
 | `listing.md` | App Store Connect text: name, subtitle, description, keywords, privacy answers, review notes |
 | `screenshots/` | 2880×1800 JPEG screenshots rendered from a real vault |
+| `demo-vault.zip`, `make-demo-vault.py` | a 91-note stargazing vault for App Review (linked in the review notes); `python3 make-demo-vault.py` rebuilds the same zip |
 | `xcode-build-phase.sh` | the Run Script phase of the Xcode project: cargo build, icon, version |
 | [`../../xcode/`](../../xcode) | `Constellate.xcodeproj`, the Xcode way to build, archive and upload (below) |
 

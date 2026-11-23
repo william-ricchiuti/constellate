@@ -179,11 +179,16 @@ The full policy is [`PRIVACY.md`](../../PRIVACY.md); keep the two in step.
 >    three linked dots). A built-in sample graph shows until a folder is chosen; on first
 >    launch an Open panel asks for one (menu: Choose Folder…).
 > 2. Pick any folder: a folder of .md notes, or any other folder, such as Documents, where
->    every file becomes a dot linked to its folder. A small sample vault: **TODO link to a zip
->    of a demo vault**. The graph appears behind the desktop icons within a few seconds.
+>    every file becomes a dot linked to its folder. A small demo vault of stargazing notes
+>    (91 linked notes; unzip it and pick the folder inside):
+>    https://github.com/william-ricchiuti/constellate/raw/main/packaging/appstore/demo-vault.zip
+>    The graph appears behind the desktop icons within a few seconds.
 > 3. Menu bar icon > Settings… changes the look (try the theme tiles); the wallpaper updates
 >    live. Export PNG saves a picture to Pictures > Constellate.
 > 4. Edit and save a note in the folder: the wallpaper updates.
+> 5. Settings > App has two switches: Show in Dock, and Hide menu-bar icon. With the icon
+>    hidden, open Constellate again (Finder, Spotlight or Launchpad) and Settings opens, where
+>    the icon can be turned back on.
 >
 > WHY IT DRAWS BEHIND THE DESKTOP
 > It is a live wallpaper. Its windows sit at the desktop window level (below the icons), on
