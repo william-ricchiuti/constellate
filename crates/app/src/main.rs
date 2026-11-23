@@ -1473,8 +1473,11 @@ impl ApplicationHandler<AppEvent> for App {
         if self.menu.is_none() {
             eprintln!("menu bar icon could not be created");
         }
+        // Opened again while running (Finder, Spotlight, the Dock icon): open Settings.
+        // With the menu-bar icon hidden that's the only way back in. The hook is a local
+        // winit patch (vendor/winit/PATCHES.md).
         let proxy = self.proxy.clone();
-        desktop::reopen::install(move || {
+        winit::platform::macos::set_reopen_handler(move || {
             let _ = proxy.send_event(AppEvent::Reopen);
         });
         self.apply_app_prefs();

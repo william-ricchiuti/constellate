@@ -23,6 +23,7 @@ pub(crate) use self::event_loop::{
     PlatformSpecificEventLoopAttributes,
 };
 pub(crate) use self::monitor::{MonitorHandle, VideoModeHandle};
+pub(crate) use self::app_state::set_reopen_handler;
 pub(crate) use self::window::WindowId;
 pub(crate) use self::window_delegate::PlatformSpecificWindowAttributes;
 use crate::event::DeviceId as RootDeviceId;

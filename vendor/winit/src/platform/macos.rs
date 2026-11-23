@@ -380,6 +380,15 @@ impl WindowAttributesExtMacOS for WindowAttributes {
     }
 }
 
+/// Local patch (vendor/winit/PATCHES.md, reopen hook): calls `handler` on the main thread
+/// each time the application is opened again while it runs (double-clicked in Finder,
+/// picked in Spotlight or Launchpad, its Dock icon clicked), from the application
+/// delegate's `applicationShouldHandleReopen:hasVisibleWindows:`. Replaces any earlier
+/// handler. Call it from the main thread; elsewhere it sets nothing for the delegate.
+pub fn set_reopen_handler(handler: impl Fn() + 'static) {
+    crate::platform_impl::set_reopen_handler(Some(Box::new(handler)));
+}
+
 pub trait EventLoopBuilderExtMacOS {
     /// Sets the activation policy for the application. If used, this will override
     /// any relevant settings provided in the package manifest.

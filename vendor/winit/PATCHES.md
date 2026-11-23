@@ -53,17 +53,34 @@ were never selector references, but their names were plain strings in the binary
 Still in the source and harmless: the WebKit cursors (`webkit_move`, `webkit_cell`) are loaded
 from image files in HIServices by path, not through any API.
 
+## Reopen hook (third patch, an addition)
+
+5. `src/platform_impl/macos/app_state.rs`: `ApplicationDelegate` implements
+   `applicationShouldHandleReopen:hasVisibleWindows:`. It calls a handler kept in a
+   main-thread `thread_local!` (`set_reopen_handler`, re-exported from
+   `platform_impl/macos/mod.rs`) and returns YES, which is what AppKit assumes when the
+   delegate doesn't implement the method, so nothing changes without a handler.
+6. `src/platform/macos.rs`: a public `set_reopen_handler(impl Fn() + 'static)`.
+
+Why: the app opens Settings when it's opened again while running (Finder, Spotlight, its
+Dock icon), the only way back in once its menu-bar icon is hidden. winit registers its own
+application delegate and panics if another one replaces it ("tried to get a delegate that
+was not the one Winit has registered"), and upstream 0.30 has no reopen event, so the hook
+goes into winit's delegate (2026-11-23).
+
 ## Re-applying on a winit upgrade
 
 1. Check whether the new winit still has the calls:
    `grep -rn "CGS\|SLS" <winit>/src/platform_impl/macos/`. If none are left except
    `CGShieldingWindowLevel`, delete `vendor/winit` and the `winit` line in
-   `[patch.crates-io]`, and you are done.
+   `[patch.crates-io]`, and you are done, provided the new winit can report a reopen
+   (patch 5); otherwise keep vendoring it for that.
 2. Otherwise copy the new crate from `~/.cargo/registry/src/*/winit-<version>/` (the files
    listed above), strip the same `Cargo.toml` tables, and redo the two edits: delete the
    private `extern` declarations in `ffi.rs`, empty `set_blur` in `window_delegate.rs`,
    delete the undocumented cursors in `cursor.rs` and the `_wantsKeyDownForEvent:` override in
-   `view.rs`. Remove any import the compiler then reports unused.
+   `view.rs`. Remove any import the compiler then reports unused. Re-add the reopen hook
+   (5, 6) unless the new winit has its own reopen event; then use that in `crates/app`.
 3. Build the App Store app (`packaging/appstore/build.sh --dry-run`) and run the `nm` check
    above, plus `strings -a <binary> | grep -E '^_[a-zA-Z]+[A-Z:]'` for leading-underscore
    selectors. Update the version and commit hash at the top of this file.

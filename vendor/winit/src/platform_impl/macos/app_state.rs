@@ -44,6 +44,17 @@ pub(super) struct AppState {
     // as such should be careful to not add fields that, in turn, strongly reference those.
 }
 
+thread_local! {
+    /// Local patch (vendor/winit/PATCHES.md, reopen hook): called from
+    /// `applicationShouldHandleReopen:hasVisibleWindows:`. Main thread only, like the delegate.
+    static REOPEN_HANDLER: RefCell<Option<Box<dyn Fn()>>> = const { RefCell::new(None) };
+}
+
+/// Local patch: sets (or clears) the reopen handler. See `platform::macos::set_reopen_handler`.
+pub(crate) fn set_reopen_handler(handler: Option<Box<dyn Fn()>>) {
+    REOPEN_HANDLER.with(|h| *h.borrow_mut() = handler);
+}
+
 declare_class!(
     #[derive(Debug)]
     pub(super) struct ApplicationDelegate;
@@ -69,6 +80,19 @@ declare_class!(
         #[method(applicationWillTerminate:)]
         fn app_will_terminate(&self, notification: &NSNotification) {
             self.will_terminate(notification)
+        }
+
+        // Local patch (reopen hook): the app was opened again while running (Finder,
+        // Spotlight, its Dock icon). Returns YES, AppKit's answer when the delegate
+        // doesn't implement this method, so behaviour is unchanged without a handler.
+        #[method(applicationShouldHandleReopen:hasVisibleWindows:)]
+        fn app_should_handle_reopen(&self, _app: &NSApplication, _has_visible_windows: bool) -> bool {
+            REOPEN_HANDLER.with(|h| {
+                if let Some(handler) = &*h.borrow() {
+                    handler();
+                }
+            });
+            true
         }
     }
 );
