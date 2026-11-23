@@ -21,9 +21,9 @@ use serde::Deserialize;
 use crate::vault::Graph;
 
 /// The plugin's folder, relative to the vault root.
-pub const PLUGIN_DIR: &str = ".obsidian/plugins/vault-wallpaper";
+pub const PLUGIN_DIR: &str = ".obsidian/plugins/constellate";
 /// The state file, relative to the vault root.
-pub const STATE_PATH: &str = ".obsidian/plugins/vault-wallpaper/state.json";
+pub const STATE_PATH: &str = ".obsidian/plugins/constellate/state.json";
 /// The plugin refreshes the state every two minutes while Obsidian is open; older
 /// than this means Obsidian is gone.
 pub const STALE_AFTER: Duration = Duration::from_secs(5 * 60);
@@ -126,7 +126,7 @@ const DEBOUNCE: Duration = Duration::from_millis(50);
 /// thread: once at start with the current state (`None` if there is none), then each
 /// time the file's content changes.
 ///
-/// Only one folder is watched, never recursively: `.obsidian/plugins/vault-wallpaper`,
+/// Only one folder is watched, never recursively: `.obsidian/plugins/constellate`,
 /// or while it doesn't exist (plugin not installed) its deepest existing parent. As
 /// folders appear or go, the watch moves down or up to follow. A recursive watch on
 /// the vault would wake for every note saved and, on a big vault, cost a walk of the
@@ -297,7 +297,7 @@ mod tests {
         std::fs::create_dir_all(root.join("notes")).unwrap();
         std::fs::write(root.join("notes/A.md"), "x").unwrap();
         let mut dir = root.clone();
-        for part in [".obsidian", "plugins", "vault-wallpaper"] {
+        for part in [".obsidian", "plugins", "constellate"] {
             std::thread::sleep(Duration::from_millis(300));
             dir.push(part);
             std::fs::create_dir(&dir).unwrap();

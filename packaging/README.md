@@ -14,7 +14,7 @@ anywhere; they find the repository root themselves. Output goes to `dist/` (git-
 
 ```bash
 export VW_SIGN_IDENTITY="Developer ID Application: Your Name (TEAMID)"
-export VW_NOTARY_PROFILE=vault-wallpaper-notary
+export VW_NOTARY_PROFILE=constellate-notary
 packaging/build-app.sh
 packaging/sign.sh
 packaging/notarize.sh "dist/Constellate.app"
@@ -216,12 +216,12 @@ One-time setup: create an app-specific password at account.apple.com (Sign-In an
 App-Specific Passwords), then store it in the keychain under a profile name:
 
 ```bash
-xcrun notarytool store-credentials vault-wallpaper-notary --apple-id "you@example.com" --team-id ABCDE12345
+xcrun notarytool store-credentials constellate-notary --apple-id "you@example.com" --team-id ABCDE12345
 ```
 
 The team ID is the 10-character code at the end of your Developer ID identity. If a
 submission comes back "Invalid", read Apple's reason with
-`xcrun notarytool log <submission-id> --keychain-profile vault-wallpaper-notary`.
+`xcrun notarytool log <submission-id> --keychain-profile constellate-notary`.
 
 ## Mac App Store
 

@@ -4,9 +4,6 @@
 #
 # Homebrew 7+ refuses casks from untrusted taps: users run
 # `brew trust --cask william-ricchiuti/tap/constellate` before installing (README).
-#
-# Up to 1.0.0-beta.1 this cask was `vault-wallpaper` (the app was "Vault Wallpaper"). The tap's
-# cask_renames.json maps the old token to this one, so `brew update` moves those installs over.
 cask "constellate" do
   version "1.0.0-beta.1"
   sha256 "0000000000000000000000000000000000000000000000000000000000000000"
@@ -29,16 +26,14 @@ cask "constellate" do
 
   app "Constellate.app"
 
-  # Start at Login registers the app as a login item; remove it with the app. Copies updated
-  # from 1.0.0-beta.1 by Sparkle may still be called "Vault Wallpaper".
+  # Start at Login registers the app as a login item; remove it with the app.
   uninstall quit:       "com.williamricchiuti.vaultwallpaper",
-            login_item: ["Constellate", "Vault Wallpaper"]
+            login_item: "Constellate"
 
   # Settings, layout cache and custom presets; WebKit data from the settings window; Sparkle's
   # state lives under Caches and Preferences. Exported PNGs in ~/Pictures are the user's.
   zap trash: [
     "~/Library/Application Support/Constellate",
-    "~/Library/Application Support/Vault Wallpaper",
     "~/Library/Caches/com.williamricchiuti.vaultwallpaper",
     "~/Library/HTTPStorages/com.williamricchiuti.vaultwallpaper",
     "~/Library/Preferences/com.williamricchiuti.vaultwallpaper.plist",

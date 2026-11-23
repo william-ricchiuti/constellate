@@ -9,7 +9,7 @@ note.
 There is no port and no network. The plugin writes one small file inside your vault:
 
 ```
-<vault>/.obsidian/plugins/vault-wallpaper/state.json
+<vault>/.obsidian/plugins/constellate/state.json
 ```
 
 and the app watches it. Without the plugin, or when Obsidian is closed, the wallpaper
@@ -31,9 +31,8 @@ This produces `main.js` next to `manifest.json`.
 
 This plugin is not in the Obsidian community store. Copy it into the vault yourself:
 
-1. Make the folder `<vault>/.obsidian/plugins/vault-wallpaper/`. The folder name
-   must be exactly `vault-wallpaper` (the plugin id, kept from the app's old name):
-   the app looks for the state file there.
+1. Make the folder `<vault>/.obsidian/plugins/constellate/`. The folder name
+   must be exactly `constellate` (the plugin id): the app looks for the state file there.
 2. Copy `main.js` and `manifest.json` into it.
 3. In Obsidian: Settings → Community plugins. Turn off Restricted mode if it is on,
    then enable **Constellate** (use the refresh button if it doesn't show up).

@@ -107,9 +107,8 @@ if ((!BUMP_ONLY)); then
   if [[ "$SPARKLE_FEED_URL" != "$FEED_URL" ]]; then
     check_fail "SPARKLE_FEED_URL in packaging/sparkle.env is $SPARKLE_FEED_URL, but the appcast is published at $FEED_URL"
   fi
-  # The repo was william-ricchiuti/vault-wallpaper up to 1.0.0-beta.1. GitHub redirects the old
-  # URLs (beta.1's SUFeedURL among them) once it's renamed, but new builds, the appcast and the
-  # cask point at $REPO directly, so it has to exist under that name (no redirect followed).
+  # New builds, the appcast and the cask point at $REPO directly, so it has to exist under that
+  # name (checked without following GitHub's redirects for renamed repositories).
   REPO_STATUS="$(curl -s -o /dev/null -w '%{http_code}' "https://api.github.com/repos/$REPO" || true)"
   if [[ "$REPO_STATUS" == 200 ]]; then
     echo "    GitHub repo $REPO exists"

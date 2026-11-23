@@ -40,17 +40,17 @@ Two kinds; you may want both.
   Sign-In and Security > App-Specific Passwords, then:
 
   ```bash
-  xcrun notarytool store-credentials vault-wallpaper-notary --apple-id "<apple id>" --team-id <TEAMID>
+  xcrun notarytool store-credentials constellate-notary --apple-id "<apple id>" --team-id <TEAMID>
   ```
 
 - **CI: App Store Connect API key.** At appstoreconnect.apple.com > Users and Access >
-  Integrations > App Store Connect API > Team Keys > **+**, name it "vault-wallpaper notary",
+  Integrations > App Store Connect API > Team Keys > **+**, name it "constellate notary",
   give it the **Developer** role and generate it. Download `AuthKey_<KEYID>.p8`; Apple lets you
   download it only once. Note the **Key ID** (next to the key) and the **Issuer ID** (above
   the list). The same key works locally too:
 
   ```bash
-  xcrun notarytool store-credentials vault-wallpaper-notary \
+  xcrun notarytool store-credentials constellate-notary \
     --key ~/Secure/AuthKey_<KEYID>.p8 --key-id <KEYID> --issuer <ISSUER-ID>
   ```
 
@@ -202,7 +202,7 @@ Then pick **one** of B2 or B3.
 
 ```bash
 export VW_SIGN_IDENTITY="Developer ID Application: William Ricchiuti (TEAMID)"
-export VW_NOTARY_PROFILE=vault-wallpaper-notary
+export VW_NOTARY_PROFILE=constellate-notary
 packaging/release.sh 1.0.0-beta.2
 ```
 
@@ -324,7 +324,7 @@ Then:
 ## If something fails
 
 - **Notarization "Invalid":** run
-  `xcrun notarytool log <submission-id> --keychain-profile vault-wallpaper-notary`, or, in CI,
+  `xcrun notarytool log <submission-id> --keychain-profile constellate-notary`, or, in CI,
   read the log printed by the step.
 - **`E0463 can't find crate` during the build:** `MACOSX_DEPLOYMENT_TARGET` was set. Run
   `cargo clean`; `packaging/README.md` has the details.

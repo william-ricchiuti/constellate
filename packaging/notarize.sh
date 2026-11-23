@@ -1,9 +1,7 @@
 #!/usr/bin/env bash
 # Notarize a signed app or DMG with Apple and staple the ticket to it.
 #
-# Usage: VW_NOTARY_PROFILE=vault-wallpaper-notary packaging/notarize.sh [file]
-#   (The profile is any name you stored with notarytool; "vault-wallpaper-notary" is from
-#   before the rename to Constellate and still works.)
+# Usage: VW_NOTARY_PROFILE=constellate-notary packaging/notarize.sh [file]
 #   file  a .app: zipped with `ditto -c -k --keepParent`, the zip submitted, and the ticket
 #         stapled to the .app itself, so the app passes Gatekeeper offline once it's copied
 #         out of the DMG (or installed by Homebrew, or replaced by Sparkle).
@@ -17,7 +15,7 @@
 #
 # One-time setup (stores an app-specific password in your keychain under a profile name):
 #
-#   xcrun notarytool store-credentials vault-wallpaper-notary \
+#   xcrun notarytool store-credentials constellate-notary \
 #     --apple-id "you@example.com" --team-id ABCDE12345
 #
 # It prompts for an app-specific password: make one at account.apple.com > Sign-In and
@@ -44,10 +42,10 @@ VW_NOTARY_PROFILE is not set, so nothing was submitted.
 
 Set it to the keychain profile you created once with:
 
-    xcrun notarytool store-credentials vault-wallpaper-notary \
+    xcrun notarytool store-credentials constellate-notary \
       --apple-id "you@example.com" --team-id ABCDE12345
 
-    export VW_NOTARY_PROFILE=vault-wallpaper-notary
+    export VW_NOTARY_PROFILE=constellate-notary
 
 (or set VW_NOTARY_KEY_PATH, VW_NOTARY_KEY_ID and VW_NOTARY_ISSUER for an API key)
 MSG

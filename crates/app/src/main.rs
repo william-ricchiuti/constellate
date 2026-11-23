@@ -227,21 +227,6 @@ fn support_dir() -> PathBuf {
     home.join("Library/Application Support").join(config::APP_DIR)
 }
 
-/// The app was "Vault Wallpaper" up to 1.0.0-beta.1: moves its Application Support folder
-/// (settings, layout cache, presets) and its Pictures export folder to the new names, once.
-/// In the App Store build `$HOME` is the sandbox container, so this moves the container's
-/// copies.
-fn migrate_old_folders() {
-    let Some(home) = std::env::var_os("HOME").filter(|h| !h.is_empty()).map(PathBuf::from) else { return };
-    for (old, new) in config::renamed_dirs(&home) {
-        match config::migrate_dir(&old, &new) {
-            Ok(true) => eprintln!("moved {} to {}", old.display(), new.display()),
-            Ok(false) => {}
-            Err(e) => eprintln!("could not move {} to {}: {e}", old.display(), new.display()),
-        }
-    }
-}
-
 /// First run: the longest the folder picker waits for the sample graph to be drawn.
 const FIRST_RUN_PICK_FALLBACK: Duration = Duration::from_secs(5);
 
@@ -1607,7 +1592,6 @@ impl ApplicationHandler<AppEvent> for App {
 }
 
 fn main() {
-    migrate_old_folders();
     let args = parse_args();
     let cfg = load_config(&args.config);
     let event_loop = EventLoop::<AppEvent>::with_user_event()

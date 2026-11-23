@@ -472,7 +472,7 @@ still includes the layout settling. Single runs: treat differences under ~10% as
 
 ### Phase 9: Obsidian plugin (S–M, optional) — built: `obsidian-plugin/`, `vw_core::presence`
 **You get:** the wallpaper knows what you are doing in Obsidian.
-- A small plugin that writes a state file inside the vault (`.obsidian/plugins/vault-wallpaper/state.json`)
+- A small plugin that writes a state file inside the vault (`.obsidian/plugins/constellate/state.json`)
   that the app already watches. No port. Contents: the note you have open, plus Obsidian's own resolved
   links when available.
 - Features: highlight the open note and its neighbourhood, pulse on save, exact link resolution.
@@ -545,11 +545,9 @@ credentials (notarization, making the repo public, releases) still waits for him
    for variety across glow, calm, activity, colour and light. Any that miss the budget are swapped.
 4. **Minimum macOS.** ✅ Decided 2026-11-05: macOS 13 Ventura and up, universal binary (Apple Silicon +
    Intel). README says "tested on macOS 26–27".
-5. **Name and bundle id.** ✅ Default taken 2026-11-06: "Vault Wallpaper", bundle id
-   `com.williamricchiuti.vaultwallpaper`. No "Obsidian" in the app name.
-   Renamed 2026-11-20 to **Constellate** (after 1.0.0-beta.1). The bundle ID stays, so Sparkle
-   updates, login items and the App Store record carry over; the old Application Support and
-   Pictures folders are moved on first launch.
+5. **Name and bundle id.** ✅ Name **Constellate** (decided 2026-11-20), bundle id
+   `com.williamricchiuti.vaultwallpaper` (chosen earlier; Apple won't let it change once the
+   App Store record exists, and nobody sees it). No "Obsidian" in the app name.
 6. **Distribution.** ✅ Default taken 2026-11-06: signed and notarized DMG on GitHub Releases plus a
    Homebrew cask in William's own tap. Mac App Store later, if ever.
    Updated 2026-11-08: the app is free on all three: the DMG with Sparkle, Homebrew, and the

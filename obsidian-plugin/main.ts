@@ -1,7 +1,7 @@
 // Constellate companion: tells the wallpaper app which note you have open.
 //
 // It writes one small JSON file inside the vault,
-//   <vault>/.obsidian/plugins/vault-wallpaper/state.json
+//   <vault>/.obsidian/plugins/constellate/state.json
 // which the app watches. Nothing leaves the machine: no port, no network.
 //
 // The file is written atomically (temp file + rename), debounced, and only when its

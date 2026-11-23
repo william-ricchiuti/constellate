@@ -72,15 +72,13 @@ Nothing here touches William's Keychain, signing identity or GitHub.
 
 ## Results
 
-These runs were before the rename to Constellate, so the logs say "Vault Wallpaper".
-
 Third run, driven entirely by script (`run3.log`):
 
 ```
 14:46:19 launch test1 (1.0.0-test1, build 9001)
 14:46:20 GET /appcast.xml 200
-14:46:21 window "Software Update": "Vault Wallpaper 1.0.0 (9002) is now available—you have 1.0.0 (9001)."
-14:46:21 click "Install Update"; GET /Vault-Wallpaper-1.0.0-test2.dmg 200
+14:46:21 window "Software Update": "<app> 1.0.0 (9002) is now available—you have 1.0.0 (9001)."
+14:46:21 click "Install Update"; GET /<app>-1.0.0-test2.dmg 200
 14:46:22 "Ready to Install" (download verified against SUPublicEDKey, extracted)
 14:46:22 click "Install and Relaunch"
 14:46:24 relaunched: new pid; bundle is now 1.0.0-test2, build 9002
@@ -145,10 +143,10 @@ Result (`run-old.log`):
 ```
 16:02:58 launch test1 (build 9001), no VW_CHECK_FOR_UPDATES
 16:02:59 GET /appcast.xml 200                          (scheduled check, 1 s after launch)
-16:03:00 window "Software Update": "Vault Wallpaper 1.0.0 (9002) is now available—you have 1.0.0 (9001)."
+16:03:00 window "Software Update": "<app> 1.0.0 (9002) is now available—you have 1.0.0 (9001)."
          app stderr: "updates: a scheduled check found an update; showing it" (the delegate)
-         CGWindowList, front to back: 0 Vault Wallpaper 'Software Update', 1 Claude, 2 Docker Desktop
-16:03:37 click "Install Update"; GET /Vault-Wallpaper-1.0.0-test2.dmg 200
+         CGWindowList, front to back: 0 <app> 'Software Update', 1 Claude, 2 Docker Desktop
+16:03:37 click "Install Update"; GET /<app>-1.0.0-test2.dmg 200
 16:03:38 click "Install and Relaunch"
 16:03:44 relaunched: new pid; bundle is now 1.0.0-test2, build 9002; codesign --verify --deep --strict OK
 ```
@@ -175,7 +173,7 @@ was tested with a throwaway key made as in step 1 above (a scratch folder, never
 and the DMG from `release.sh 1.0.0-beta.1 --dry-run`:
 
 ```bash
-VW_SPARKLE_PRIVATE_KEY="$(cat seed)" packaging/make-appcast.sh dist/Vault-Wallpaper-1.0.0-beta.1.dmg --out a.xml
+VW_SPARKLE_PRIVATE_KEY="$(cat seed)" packaging/make-appcast.sh dist/Constellate-1.0.0-beta.1.dmg --out a.xml
 ```
 
 - **First try: no signature, and no warning from Sparkle.** `generate_appcast` wrote the item

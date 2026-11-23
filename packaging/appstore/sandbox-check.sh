@@ -57,7 +57,7 @@ echo "== 3. watching (FSEvents under the bookmark)"
 ask "Edit and save any note in Obsidian"
 sleep 2
 grep -q 'vault changed' "$ERR" && ok "the watcher saw the edit" || bad "no 'vault changed' line"
-if [[ -n "$(find "$(sed -n 's/.*"vaultPath": *"\([^"]*\)".*/\1/p' "$SUPPORT/config.json")/.obsidian/plugins/vault-wallpaper" -name state.json 2>/dev/null)" ]]; then
+if [[ -n "$(find "$(sed -n 's/.*"vaultPath": *"\([^"]*\)".*/\1/p' "$SUPPORT/config.json")/.obsidian/plugins/constellate" -name state.json 2>/dev/null)" ]]; then
   grep -q 'obsidian:' "$ERR" && ok "the Obsidian plugin's state.json is read" || bad "plugin installed but no 'obsidian:' line"
 else
   echo "  (Obsidian plugin not installed in this vault; state.json not checked)"

@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to Constellate (called Vault Wallpaper up to 1.0.0-beta.1). The format follows
+All notable changes to Constellate. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versions follow
 [Semantic Versioning](https://semver.org/).
 
@@ -27,12 +27,7 @@ All notable changes to Constellate (called Vault Wallpaper up to 1.0.0-beta.1). 
 ### Changed
 
 - The app is now called **Constellate** (`Constellate.app`, `Constellate-<version>.dmg`,
-  Homebrew cask `constellate`). Its bundle ID and update feed are unchanged, so 1.0.0-beta.1
-  updates itself. On first launch it moves `~/Library/Application Support/Vault Wallpaper/`
-  (settings, layout cache, presets) to `~/Library/Application Support/Constellate/`, and
-  `~/Pictures/Vault Wallpaper/` to `~/Pictures/Constellate/`, unless the new folder already
-  exists. The Obsidian companion plugin is shown as Constellate; its id (and folder,
-  `.obsidian/plugins/vault-wallpaper`) stays the same.
+  Homebrew cask `constellate`, Obsidian plugin `constellate`), with a new icon.
 - **Choose Vault…** is now **Choose Folder…**, and the Open panel asks for "a notes folder or
   any folder".
 - Obsidian vaults are read exactly as before; existing configs and layouts are unchanged.
@@ -59,7 +54,7 @@ The first beta of the native macOS app, a rewrite of the web version
 - Settings window with the web version's settings page: themes, presets, custom presets,
   colours, labels, layout and motion. Changes apply live.
 - Import of the web version's `config.json` and `custom-presets.json`.
-- Config at `~/Library/Application Support/Vault Wallpaper/config.json`, in the web format,
+- Config at `~/Library/Application Support/Constellate/config.json`, in the web format,
   reloaded when edited.
 - Draws nothing while covered or still; glow breathing runs in the window server.
 - Universal (Apple Silicon and Intel) app bundle for macOS 13+ and app icon, as a signed and

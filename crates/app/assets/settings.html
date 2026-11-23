@@ -808,7 +808,7 @@ $('saveCustomForm').addEventListener('submit', async e => {
 
 async function migrateLocalPresets(defaults) {
   let stored = [];
-  try { stored = JSON.parse(localStorage.getItem('vaultwallpaper-custom') || '[]'); } catch (e) { return; }
+  try { stored = JSON.parse(localStorage.getItem('constellate-custom') || '[]'); } catch (e) { return; }
   if (!Array.isArray(stored) || !stored.length) return;
   let ok = true;
   for (const p of stored) {
@@ -820,7 +820,7 @@ async function migrateLocalPresets(defaults) {
       CUSTOM = await postCustomPreset(String(p.name).slice(0, 60), config);
     } catch (e) { ok = false; }
   }
-  if (ok) { try { localStorage.removeItem('vaultwallpaper-custom'); } catch (e) { /* ignore */ } }
+  if (ok) { try { localStorage.removeItem('constellate-custom'); } catch (e) { /* ignore */ } }
 }
 
 async function loadPresets() {
@@ -1032,12 +1032,12 @@ async function loadTags() {
 (function () {
   const btn = $('themeToggle');
   let saved = null;
-  try { saved = localStorage.getItem('vaultwallpaper-theme'); } catch (e) { /* storage blocked */ }
+  try { saved = localStorage.getItem('constellate-theme'); } catch (e) { /* storage blocked */ }
   if (saved === 'light') { document.body.classList.add('light'); btn.innerHTML = '&#9790;'; }
   btn.addEventListener('click', () => {
     const isLight = document.body.classList.toggle('light');
     btn.innerHTML = isLight ? '&#9790;' : '&#9788;';
-    try { localStorage.setItem('vaultwallpaper-theme', isLight ? 'light' : 'dark'); } catch (e) { /* ignore */ }
+    try { localStorage.setItem('constellate-theme', isLight ? 'light' : 'dark'); } catch (e) { /* ignore */ }
   });
 })();
 

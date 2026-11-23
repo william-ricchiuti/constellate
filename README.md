@@ -32,22 +32,6 @@ brew install --cask william-ricchiuti/tap/constellate
 
 Updates come from the app itself (Check for Updates…), so `brew upgrade` leaves it alone.
 
-### Coming from Vault Wallpaper
-
-Constellate was called **Vault Wallpaper** up to 1.0.0-beta.1. Nothing to do for the app
-itself: the beta updates itself to Constellate, and on its first launch Constellate moves your
-settings, layout cache and presets from `~/Library/Application Support/Vault Wallpaper/` to
-`~/Library/Application Support/Constellate/`, and your exported pictures from
-`~/Pictures/Vault Wallpaper/` to `~/Pictures/Constellate/`. Updated in place, the app may
-keep its old file name, `Vault Wallpaper.app`, in Applications; rename it if you like.
-
-With Homebrew, the old `vault-wallpaper` cask is renamed to `constellate` on `brew update`.
-Homebrew's trust doesn't carry over to the new name, so run this once:
-
-```bash
-brew trust --cask william-ricchiuti/tap/constellate
-```
-
 ## First run
 
 The first time it opens, Constellate asks you to choose a folder: your notes folder (an
