@@ -6,3 +6,6 @@ dist/
 
 # Xcode per-user state
 xcuserdata/
+
+# Python bytecode (packaging scripts)
+__pycache__/
