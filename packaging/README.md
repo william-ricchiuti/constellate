@@ -69,6 +69,9 @@ with `sips` and `iconutil`. To redraw it:
 cargo run --release -p vw-render --example app_icon -- packaging/icon/icon-1024.png
 ```
 
+Then run `packaging/icon/make-appiconset.sh`, which writes the Xcode project's App Icon
+(`xcode/Assets.xcassets`) from that PNG, and commit both.
+
 Everything the app needs at run time (the settings page, presets, thumbnails) is compiled
 into the binary, so the bundle has no other resources, except the updater below and
 `THIRD-PARTY-NOTICES.txt`.

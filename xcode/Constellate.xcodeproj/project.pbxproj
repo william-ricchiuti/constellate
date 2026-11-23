@@ -7,61 +7,64 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		8BE469256ECE6CE1886DD0C7 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 6EAA15AA1F4B961FD9423D02 /* PrivacyInfo.xcprivacy */; };
-		F5385C7E1F4388C4BAB076BE /* THIRD-PARTY-NOTICES.txt in Resources */ = {isa = PBXBuildFile; fileRef = ED6D3D3519D719126666DC1D /* THIRD-PARTY-NOTICES.txt */; };
+		368F240261D75997CADEBA68 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = D303F5B6CC5939D57364E4F0 /* PrivacyInfo.xcprivacy */; };
+		416423B0AAD57E3D59B3188E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 653FB4A4F09B8AB34898EB5A /* Assets.xcassets */; };
+		BBF08FECE097EAC2BA53659F /* THIRD-PARTY-NOTICES.txt in Resources */ = {isa = PBXBuildFile; fileRef = 0D068F45D4B97F54504552CB /* THIRD-PARTY-NOTICES.txt */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		0BCE2F8932688BA7CC5FBB47 /* xcode-build-phase.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = "xcode-build-phase.sh"; sourceTree = "<group>"; };
-		129D32E75D26C1F89BF79B1E /* entitlements.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = entitlements.plist; sourceTree = "<group>"; };
-		20BF7D2B021B196B9A6CFBDB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
-		6EAA15AA1F4B961FD9423D02 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
-		B694F97700109865F14D10C0 /* Constellate.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Constellate.app"; sourceTree = BUILT_PRODUCTS_DIR; };
-		ED6D3D3519D719126666DC1D /* THIRD-PARTY-NOTICES.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "THIRD-PARTY-NOTICES.txt"; sourceTree = "<group>"; };
+		004624C17B017C6D946E7C69 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		02103867DC9D2BDE6BC1F75E /* Constellate.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Constellate.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		0D068F45D4B97F54504552CB /* THIRD-PARTY-NOTICES.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "THIRD-PARTY-NOTICES.txt"; sourceTree = "<group>"; };
+		5B2B2439059FC193FAACDC39 /* entitlements.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = entitlements.plist; sourceTree = "<group>"; };
+		653FB4A4F09B8AB34898EB5A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		D303F5B6CC5939D57364E4F0 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		E4299923397334C517918735 /* xcode-build-phase.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = "xcode-build-phase.sh"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
-		188697E7CD5B23CAA3C62052 /* packaging */ = {
+		1CDAB914BEE69131B58F412F /* rename-constellate-1a56be */ = {
 			isa = PBXGroup;
 			children = (
-				F1FE681F0991BE2E7A6B2299 /* appstore */,
+				0D068F45D4B97F54504552CB /* THIRD-PARTY-NOTICES.txt */,
+				425E72B4BA8D19BEC0286D8F /* packaging */,
+			);
+			name = "rename-constellate-1a56be";
+			path = ..;
+			sourceTree = "<group>";
+		};
+		425E72B4BA8D19BEC0286D8F /* packaging */ = {
+			isa = PBXGroup;
+			children = (
+				E8BC0985FD101C80D301553F /* appstore */,
 			);
 			path = packaging;
 			sourceTree = "<group>";
 		};
-		33235E156290308886E56509 /* appstore-xcode-4bf2c1 */ = {
+		BA4CF6D292E18CFD4C9C0B4D = {
 			isa = PBXGroup;
 			children = (
-				ED6D3D3519D719126666DC1D /* THIRD-PARTY-NOTICES.txt */,
-				188697E7CD5B23CAA3C62052 /* packaging */,
-			);
-			name = "appstore-xcode-4bf2c1";
-			path = ..;
-			sourceTree = "<group>";
-		};
-		42C28725A03803BFAE612C8D = {
-			isa = PBXGroup;
-			children = (
-				20BF7D2B021B196B9A6CFBDB /* Info.plist */,
-				33235E156290308886E56509 /* appstore-xcode-4bf2c1 */,
-				8034C7B9855757B647191E66 /* Products */,
+				653FB4A4F09B8AB34898EB5A /* Assets.xcassets */,
+				004624C17B017C6D946E7C69 /* Info.plist */,
+				1CDAB914BEE69131B58F412F /* rename-constellate-1a56be */,
+				DB3B1D368F323C83FC7D6DAD /* Products */,
 			);
 			sourceTree = "<group>";
 		};
-		8034C7B9855757B647191E66 /* Products */ = {
+		DB3B1D368F323C83FC7D6DAD /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				B694F97700109865F14D10C0 /* Constellate.app */,
+				02103867DC9D2BDE6BC1F75E /* Constellate.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
-		F1FE681F0991BE2E7A6B2299 /* appstore */ = {
+		E8BC0985FD101C80D301553F /* appstore */ = {
 			isa = PBXGroup;
 			children = (
-				129D32E75D26C1F89BF79B1E /* entitlements.plist */,
-				6EAA15AA1F4B961FD9423D02 /* PrivacyInfo.xcprivacy */,
-				0BCE2F8932688BA7CC5FBB47 /* xcode-build-phase.sh */,
+				5B2B2439059FC193FAACDC39 /* entitlements.plist */,
+				D303F5B6CC5939D57364E4F0 /* PrivacyInfo.xcprivacy */,
+				E4299923397334C517918735 /* xcode-build-phase.sh */,
 			);
 			path = appstore;
 			sourceTree = "<group>";
@@ -69,13 +72,13 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		CFC9E01666DA9F5CA950BF33 /* Constellate */ = {
+		64BF6DB37DC8FD60A4C31707 /* Constellate */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = BB7359D3D51398E7D8EFC2AC /* Build configuration list for PBXNativeTarget "Constellate" */;
+			buildConfigurationList = 7C2667384A930884C5A5EFE1 /* Build configuration list for PBXNativeTarget "Constellate" */;
 			buildPhases = (
-				92698EAD410C7445FCEF4687 /* Sources */,
-				005785F6BC0B75019D85E5D6 /* Build the Rust app (cargo) */,
-				3A4727E389636204B0309791 /* Resources */,
+				A21CE30F27088A34D0EAA819 /* Sources */,
+				A16C2D8A3182EB90E0F7A32D /* Resources */,
+				B2F6536D18360D27AF1FABA7 /* Build the Rust app (cargo) */,
 			);
 			buildRules = (
 			);
@@ -85,57 +88,58 @@
 			packageProductDependencies = (
 			);
 			productName = Constellate;
-			productReference = B694F97700109865F14D10C0 /* Constellate.app */;
+			productReference = 02103867DC9D2BDE6BC1F75E /* Constellate.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
-		7B608A2673102C3C2557F730 /* Project object */ = {
+		05D7F115C19273B488C259B7 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 1430;
 				TargetAttributes = {
-					CFC9E01666DA9F5CA950BF33 = {
+					64BF6DB37DC8FD60A4C31707 = {
 						DevelopmentTeam = 3AP82DL922;
 						ProvisioningStyle = Automatic;
 					};
 				};
 			};
-			buildConfigurationList = 7C41D52966D05D950D6B855C /* Build configuration list for PBXProject "Constellate" */;
+			buildConfigurationList = 8930DBD399328761B8446EBB /* Build configuration list for PBXProject "Constellate" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				Base,
 				en,
 			);
-			mainGroup = 42C28725A03803BFAE612C8D;
+			mainGroup = BA4CF6D292E18CFD4C9C0B4D;
 			minimizedProjectReferenceProxies = 1;
 			preferredProjectObjectVersion = 77;
-			productRefGroup = 8034C7B9855757B647191E66 /* Products */;
+			productRefGroup = DB3B1D368F323C83FC7D6DAD /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				CFC9E01666DA9F5CA950BF33 /* Constellate */,
+				64BF6DB37DC8FD60A4C31707 /* Constellate */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		3A4727E389636204B0309791 /* Resources */ = {
+		A16C2D8A3182EB90E0F7A32D /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				8BE469256ECE6CE1886DD0C7 /* PrivacyInfo.xcprivacy in Resources */,
-				F5385C7E1F4388C4BAB076BE /* THIRD-PARTY-NOTICES.txt in Resources */,
+				416423B0AAD57E3D59B3188E /* Assets.xcassets in Resources */,
+				368F240261D75997CADEBA68 /* PrivacyInfo.xcprivacy in Resources */,
+				BBF08FECE097EAC2BA53659F /* THIRD-PARTY-NOTICES.txt in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		005785F6BC0B75019D85E5D6 /* Build the Rust app (cargo) */ = {
+		B2F6536D18360D27AF1FABA7 /* Build the Rust app (cargo) */ = {
 			isa = PBXShellScriptBuildPhase;
 			alwaysOutOfDate = 1;
 			buildActionMask = 2147483647;
@@ -151,7 +155,6 @@
 			);
 			outputPaths = (
 				"$(TARGET_BUILD_DIR)/$(EXECUTABLE_PATH)",
-				"$(TARGET_BUILD_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/AppIcon.icns",
 				"$(DWARF_DSYM_FOLDER_PATH)/$(DWARF_DSYM_FILE_NAME)",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -161,7 +164,7 @@
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		92698EAD410C7445FCEF4687 /* Sources */ = {
+		A21CE30F27088A34D0EAA819 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -171,7 +174,40 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
-		49494189BF6F0D8EA933A84F /* Release */ = {
+		3FCFA0A2C321CA88D562C86E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD)";
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = ../packaging/appstore/entitlements.plist;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				EXECUTABLE_NAME = constellate;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Info.plist;
+				INSTALL_PATH = /Applications;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 1.0.0;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.williamricchiuti.vaultwallpaper;
+				PRODUCT_NAME = Constellate;
+				SDKROOT = macosx;
+				SKIP_INSTALL = NO;
+				STRIP_INSTALLED_PRODUCT = NO;
+			};
+			name = Debug;
+		};
+		476D9CF009052DC07C7F795F /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -228,7 +264,40 @@
 			};
 			name = Release;
 		};
-		62D40B70C90440811538FA20 /* Debug */ = {
+		631CA83765383165A6BDD7A3 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD)";
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = ../packaging/appstore/entitlements.plist;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				EXECUTABLE_NAME = constellate;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Info.plist;
+				INSTALL_PATH = /Applications;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 1.0.0;
+				ONLY_ACTIVE_ARCH = NO;
+				PRODUCT_BUNDLE_IDENTIFIER = com.williamricchiuti.vaultwallpaper;
+				PRODUCT_NAME = Constellate;
+				SDKROOT = macosx;
+				SKIP_INSTALL = NO;
+				STRIP_INSTALLED_PRODUCT = NO;
+			};
+			name = Release;
+		};
+		E4D9E0BA9545CB03165BA424 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -292,96 +361,28 @@
 			};
 			name = Debug;
 		};
-		D17BDD75A691CD8CB3A2C049 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD)";
-				ASSETCATALOG_COMPILER_APPICON_NAME = "";
-				CODE_SIGN_ENTITLEMENTS = ../packaging/appstore/entitlements.plist;
-				CODE_SIGN_IDENTITY = "Apple Development";
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
-				CODE_SIGN_STYLE = Automatic;
-				COMBINE_HIDPI_IMAGES = YES;
-				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 1;
-				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				ENABLE_APP_SANDBOX = YES;
-				ENABLE_HARDENED_RUNTIME = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = NO;
-				EXECUTABLE_NAME = "constellate";
-				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_FILE = Info.plist;
-				INSTALL_PATH = /Applications;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/../Frameworks",
-				);
-				MARKETING_VERSION = 1.0.0;
-				ONLY_ACTIVE_ARCH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = com.williamricchiuti.vaultwallpaper;
-				PRODUCT_NAME = "Constellate";
-				SDKROOT = macosx;
-				SKIP_INSTALL = NO;
-				STRIP_INSTALLED_PRODUCT = NO;
-			};
-			name = Debug;
-		};
-		E39691CA12CAFBC386B17325 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD)";
-				ASSETCATALOG_COMPILER_APPICON_NAME = "";
-				CODE_SIGN_ENTITLEMENTS = ../packaging/appstore/entitlements.plist;
-				CODE_SIGN_IDENTITY = "Apple Development";
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
-				CODE_SIGN_STYLE = Automatic;
-				COMBINE_HIDPI_IMAGES = YES;
-				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 1;
-				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				ENABLE_APP_SANDBOX = YES;
-				ENABLE_HARDENED_RUNTIME = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = NO;
-				EXECUTABLE_NAME = "constellate";
-				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_FILE = Info.plist;
-				INSTALL_PATH = /Applications;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/../Frameworks",
-				);
-				MARKETING_VERSION = 1.0.0;
-				ONLY_ACTIVE_ARCH = NO;
-				PRODUCT_BUNDLE_IDENTIFIER = com.williamricchiuti.vaultwallpaper;
-				PRODUCT_NAME = "Constellate";
-				SDKROOT = macosx;
-				SKIP_INSTALL = NO;
-				STRIP_INSTALLED_PRODUCT = NO;
-			};
-			name = Release;
-		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		7C41D52966D05D950D6B855C /* Build configuration list for PBXProject "Constellate" */ = {
+		7C2667384A930884C5A5EFE1 /* Build configuration list for PBXNativeTarget "Constellate" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				62D40B70C90440811538FA20 /* Debug */,
-				49494189BF6F0D8EA933A84F /* Release */,
+				3FCFA0A2C321CA88D562C86E /* Debug */,
+				631CA83765383165A6BDD7A3 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
 		};
-		BB7359D3D51398E7D8EFC2AC /* Build configuration list for PBXNativeTarget "Constellate" */ = {
+		8930DBD399328761B8446EBB /* Build configuration list for PBXProject "Constellate" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				D17BDD75A691CD8CB3A2C049 /* Debug */,
-				E39691CA12CAFBC386B17325 /* Release */,
+				E4D9E0BA9545CB03165BA424 /* Debug */,
+				476D9CF009052DC07C7F795F /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
 		};
 /* End XCConfigurationList section */
 	};
-	rootObject = 7B608A2673102C3C2557F730 /* Project object */;
+	rootObject = 05D7F115C19273B488C259B7 /* Project object */;
 }

@@ -7,10 +7,10 @@
 #     (arm64 and x86_64 for Archive), lipo'd into the bundle as the executable;
 #   - a dSYM next to the app (Xcode puts it in the archive and uploads it, so App Store Connect
 #     crash reports show function names and lines), then the debug map stripped from the binary;
-#   - AppIcon.icns from packaging/icon/icon-1024.png;
 #   - the version (crates/app/Cargo.toml) and build number (commit count, packaging/build-number.sh)
 #     written into the built Info.plist.
-# Xcode copies PrivacyInfo.xcprivacy and THIRD-PARTY-NOTICES.txt, then signs with
+# Xcode compiles the App Icon (xcode/Assets.xcassets), copies PrivacyInfo.xcprivacy and
+# THIRD-PARTY-NOTICES.txt, then signs with
 # packaging/appstore/entitlements.plist.
 set -euo pipefail
 
@@ -83,21 +83,6 @@ fi
 # Drop the debug map (paths to this Mac's object files) from the shipped binary; the symbol
 # table stays, as in build.sh's binary.
 strip -S "$EXE"
-
-RES="$TARGET_BUILD_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH"
-ICON_PNG="$ROOT/packaging/icon/icon-1024.png"
-mkdir -p "$RES"
-if [[ ! -f "$RES/AppIcon.icns" || "$ICON_PNG" -nt "$RES/AppIcon.icns" ]]; then
-  SET="$DERIVED_FILE_DIR/AppIcon.iconset"
-  rm -rf "$SET"
-  mkdir -p "$SET"
-  for s in 16 32 128 256 512; do
-    sips -z "$s" "$s" "$ICON_PNG" --out "$SET/icon_${s}x${s}.png" >/dev/null
-    d=$((s * 2))
-    sips -z "$d" "$d" "$ICON_PNG" --out "$SET/icon_${s}x${s}@2x.png" >/dev/null
-  done
-  iconutil -c icns "$SET" -o "$RES/AppIcon.icns"
-fi
 
 PLIST="$TARGET_BUILD_DIR/$INFOPLIST_PATH"
 /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $SHORT_VERSION" \

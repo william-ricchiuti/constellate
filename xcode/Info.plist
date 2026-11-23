@@ -30,6 +30,8 @@
 	<string>$(MARKETING_VERSION)</string>
 	<key>CFBundleIconFile</key>
 	<string>AppIcon</string>
+	<key>CFBundleIconName</key>
+	<string>AppIcon</string>
 	<key>NSHumanReadableCopyright</key>
 	<string>© William Ricchiuti</string>
 	<key>LSMinimumSystemVersion</key>

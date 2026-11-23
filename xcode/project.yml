@@ -24,6 +24,8 @@ targets:
     sources:
       - path: Info.plist
         buildPhase: none
+      - path: Assets.xcassets
+        buildPhase: resources
       - path: ../packaging/appstore/PrivacyInfo.xcprivacy
         buildPhase: resources
       - path: ../THIRD-PARTY-NOTICES.txt
@@ -55,14 +57,14 @@ targets:
         COPY_PHASE_STRIP: NO
         # The script writes into the repository's target/ folder, outside Xcode's sandbox for scripts.
         ENABLE_USER_SCRIPT_SANDBOXING: NO
-        ASSETCATALOG_COMPILER_APPICON_NAME: ""
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         SKIP_INSTALL: NO
         INSTALL_PATH: /Applications
       configs:
         Debug:
           ONLY_ACTIVE_ARCH: YES
     preBuildScripts: []
-    postCompileScripts:
+    postBuildScripts:
       - name: Build the Rust app (cargo)
         script: |
           exec "$SRCROOT/../packaging/appstore/xcode-build-phase.sh"
@@ -72,7 +74,6 @@ targets:
           - $(TARGET_BUILD_DIR)/$(INFOPLIST_PATH)
         outputFiles:
           - $(TARGET_BUILD_DIR)/$(EXECUTABLE_PATH)
-          - $(TARGET_BUILD_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/AppIcon.icns
           - $(DWARF_DSYM_FOLDER_PATH)/$(DWARF_DSYM_FILE_NAME)
 schemes:
   Constellate:
